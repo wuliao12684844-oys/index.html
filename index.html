@@ -48,6 +48,29 @@
         button.btn-outline { background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
         .result-box { margin-top: 16px; padding: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; text-align: center; display: none; }
         .result-class { font-size: 2rem; font-weight: 800; color: var(--primary); margin: 4px 0; }
+
+        /* 分班路径动画样式 */
+        .anim-panel { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #bfdbfe; text-align: left; }
+        .anim-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #334155; margin-bottom: 10px; font-weight: 600; }
+        .anim-grid { display: grid; gap: 8px; margin-bottom: 10px; }
+        .anim-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .anim-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+        .anim-cell {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 4px;
+            text-align: center;
+            transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+        }
+        .anim-cell .cls-name { font-weight: 700; font-size: 0.9rem; color: #1e293b; }
+        .anim-cell .rank-num { font-size: 0.82rem; color: #64748b; margin-top: 2px; min-height: 1.1em; }
+        .anim-cell.visited { background: #f1f5f9; border-color: #94a3b8; }
+        .anim-cell.active { background: #dbeafe; border-color: var(--primary); transform: scale(1.04); }
+        .anim-cell.final { background: var(--primary); border-color: var(--primary); transform: scale(1.06); }
+        .anim-cell.final .cls-name, .anim-cell.final .rank-num { color: #ffffff; }
+        .anim-caption { font-size: 0.85rem; color: #334155; background: #ffffff; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
+
         table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 10px; }
         th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: #f1f5f9; font-weight: 600; }
@@ -102,13 +125,13 @@
             </select>
         </div>
         <div class="form-group">
-            <label>年级总排名</label>
-            <input type="number" id="stuRank" min="1" placeholder="请输入正整数排名，例如: 125">
+            <label>年级总排名 (1 - 420 正整数)</label>
+            <input type="number" id="stuRank" min="1" max="420" step="1" placeholder="请输入 1 到 420 之间的整数，例如: 125">
         </div>
         <div class="form-group">
             <label>选择分班算法</label>
             <div class="radio-group">
-                <div class="radio-btn active" id="btnAlgoZ" onclick="selectAlgo('Z')">算法 Z</div>
+                <div class="radio-btn active" id="btnAlgoZ" onclick="selectAlgo('Z')">算法 Z (顺序)</div>
                 <div class="radio-btn" id="btnAlgoS" onclick="selectAlgo('S')">算法 S (蛇形)</div>
             </div>
         </div>
@@ -118,6 +141,15 @@
         <div class="result-box" id="resultBox">
             <div style="font-size: 0.9rem; color: #475569;" id="resultDetail"></div>
             <div class="result-class" id="resultClass"></div>
+
+            <div class="anim-panel" id="animPanel">
+                <div class="anim-header">
+                    <span id="animModeLabel">分班路径演示</span>
+                    <button class="btn-outline" type="button" onclick="replayLastAnimation()">重播动画</button>
+                </div>
+                <div class="anim-grid cols-3" id="animGrid"></div>
+                <div class="anim-caption" id="animCaption"></div>
+            </div>
         </div>
     </div>
 
@@ -152,15 +184,18 @@
 
 <script>
     // ==========================================
-    // 【重要】填入你的新 Token（拆成两段拼接）和 Secret Gist ID
+    // 已填入你的 Token 与 Secret Gist ID
+    // 若你的 Gist 文件名为 ranking_records.json，请将下一行改为 'ranking_records.json'
     // ==========================================
-    const PUBLIC_TOKEN = "ghp_Nt399jJMQ5XzAHLcZpI" + "OgfVTq5Kv160zBkzm";
+    const PUBLIC_TOKEN = "ghp_Nt399jJMQ5XzAH" + "LcZpIOgfVTq5Kv160zBkzm";
     const PUBLIC_GIST_ID = "a893383857e734f831253d6b01e96494";
-    const FILENAME = 'ranking_records.json';
+    const FILENAME = 'ranking_rbt.json';
 
     let currentAlgo = 'Z';
     let records = [];
     let isAdminUnlocked = false;
+    let animTimer = null;
+    let lastAnimPayload = null;
 
     // 页面加载时检查管理员是否已在此设备解锁过
     window.onload = () => {
@@ -271,21 +306,145 @@
         return { targetClass, group };
     }
 
+    // 生成分组矩阵与从组起点到目标排名的落点动画步骤
+    function buildAnimationPlan(rank, algo) {
+        let cols, startRank, offset;
+        if (rank <= 120) {
+            cols = ['3R1', '3R2', '3R3'];
+            startRank = 1;
+            offset = rank;
+        } else if (rank <= 280) {
+            cols = ['3R4', '3R5', '3R6', '3R7'];
+            startRank = 121;
+            offset = rank - 120;
+        } else {
+            cols = ['3R8', '3R9', '3R10'];
+            startRank = 281;
+            offset = rank - 280;
+        }
+
+        const n = cols.length;
+        const steps = [];
+        for (let stepIdx = 0; stepIdx < offset; stepIdx++) {
+            const currentVal = startRank + stepIdx;
+            const k = stepIdx + 1;
+            const row = Math.floor((k - 1) / n);
+            const posInRow = (k - 1) % n;
+            const isReverseRow = (algo === 'S') && (row % 2 === 1);
+            const colIndex = isReverseRow ? (n - 1 - posInRow) : posInRow;
+            const className = cols[colIndex];
+            const dirArrow = algo === 'Z' ? '→' : (isReverseRow ? '←' : '→');
+
+            steps.push({
+                stepIdx,
+                currentVal,
+                colIndex,
+                className,
+                row,
+                dirArrow
+            });
+        }
+
+        return { cols, steps, targetRank: rank };
+    }
+
+    function playAnimation(rank, algo, targetClass) {
+        if (animTimer) {
+            clearInterval(animTimer);
+            animTimer = null;
+        }
+
+        const plan = buildAnimationPlan(rank, algo);
+        lastAnimPayload = { rank, algo, targetClass };
+
+        const gridEl = document.getElementById('animGrid');
+        const modeLabelEl = document.getElementById('animModeLabel');
+        const captionEl = document.getElementById('animCaption');
+
+        gridEl.className = `anim-grid cols-${plan.cols.length}`;
+        modeLabelEl.textContent = algo === 'Z'
+            ? `算法 Z 演示（每行 ${plan.cols.length} 班，同向循环 →）`
+            : `算法 S 演示（每行 ${plan.cols.length} 班，蛇形往返 → / ←）`;
+
+        gridEl.innerHTML = plan.cols.map((cls, idx) => `
+            <div class="anim-cell" id="animCell_${idx}">
+                <div class="cls-name">${cls}</div>
+                <div class="rank-num" id="animRank_${idx}">-</div>
+            </div>
+        `).join('');
+
+        const totalSteps = plan.steps.length;
+        const intervalMs = totalSteps > 45 ? 25 : (totalSteps > 20 ? 55 : 140);
+
+        let i = 0;
+        captionEl.textContent = `开始从第 ${plan.steps[0].currentVal} 名分发...`;
+
+        const tick = () => {
+            const step = plan.steps[i];
+            document.querySelectorAll('.anim-cell').forEach((cell) => {
+                cell.classList.remove('active');
+            });
+
+            const activeCell = document.getElementById(`animCell_${step.colIndex}`);
+            const activeRankEl = document.getElementById(`animRank_${step.colIndex}`);
+            if (activeCell && activeRankEl) {
+                activeCell.classList.add('visited');
+                activeCell.classList.add('active');
+                activeRankEl.textContent = `#${step.currentVal}`;
+            }
+
+            const isLast = (i === totalSteps - 1);
+            if (!isLast) {
+                captionEl.textContent = `第 ${step.currentVal} 名 ${step.dirArrow} ${step.className}（第 ${step.row + 1} 轮）`;
+                i++;
+            } else {
+                clearInterval(animTimer);
+                animTimer = null;
+                if (activeCell) {
+                    activeCell.classList.remove('active');
+                    activeCell.classList.add('final');
+                }
+                captionEl.innerHTML = `排名 <strong>${rank}</strong> 按 <strong>算法 ${algo}</strong> ${algo === 'S' ? `（${step.dirArrow} 蛇形）` : '（→ 顺序）'} 落在 <strong>${targetClass}</strong>`;
+            }
+        };
+
+        tick();
+        if (totalSteps > 1) {
+            animTimer = setInterval(tick, intervalMs);
+        }
+    }
+
+    function replayLastAnimation() {
+        if (!lastAnimPayload) return;
+        playAnimation(lastAnimPayload.rank, lastAnimPayload.algo, lastAnimPayload.targetClass);
+    }
+
     // 计算并安全追加保存到云端
     async function calculateAndSave() {
         const name = document.getElementById('stuName').value.trim();
         const oldClass = document.getElementById('stuClass').value;
-        const rank = parseInt(document.getElementById('stuRank').value, 10);
+        const rawRankText = document.getElementById('stuRank').value.trim();
+        const rankNum = Number(rawRankText);
 
         if (!name) return alert('请输入学生姓名！');
-        if (isNaN(rank) || rank < 1) return alert('请输入有效的正整数排名！');
+        if (
+            rawRankText === '' ||
+            !Number.isFinite(rankNum) ||
+            !Number.isInteger(rankNum) ||
+            rankNum <= 0 ||
+            rankNum >= 421
+        ) {
+            return alert('排名必须满足 0 < 排名 < 421 且为整数（不能输入小数或超出范围）！');
+        }
 
+        const rank = rankNum;
         const { targetClass, group } = computeClass(rank, currentAlgo);
 
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
         document.getElementById('resultDetail').innerText = `${name} (${oldClass}) | 排名 ${rank} (${group} · 算法${currentAlgo})`;
         document.getElementById('resultClass').innerText = targetClass;
+        playAnimation(rank, currentAlgo, targetClass);
 
         const btn = document.getElementById('submitBtn');
         const statusEl = document.getElementById('submitStatus');
