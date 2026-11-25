@@ -14,8 +14,25 @@
             --border: #e2e8f0;
         }
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 16px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 600px; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 16px; display: flex; justify-content: center; position: relative; }
+
+        /* 左上角隐蔽小点按钮 */
+        .secret-dot {
+            position: fixed;
+            top: 8px;
+            left: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            opacity: 0.45;
+            cursor: pointer;
+            z-index: 999;
+            transition: 0.2s;
+        }
+        .secret-dot:hover { opacity: 1; background: var(--primary); }
+
+        .container { width: 100%; max-width: 600px; margin-top: 8px; }
         .card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px; border: 1px solid var(--border); }
         h2 { margin-top: 0; font-size: 1.25rem; display: flex; justify-content: space-between; align-items: center; }
         .form-group { margin-bottom: 14px; }
@@ -27,42 +44,42 @@
         .radio-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         button.btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 6px; }
         button.btn-primary:hover { background: var(--primary-hover); }
+        button.btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
         button.btn-outline { background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
         .result-box { margin-top: 16px; padding: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; text-align: center; display: none; }
         .result-class { font-size: 2rem; font-weight: 800; color: var(--primary); margin: 4px 0; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
-        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 10px; }
+        th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: #f1f5f9; font-weight: 600; }
-        .del-btn { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.85rem; }
+        .del-btn { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
         .status-bar { font-size: 0.8rem; color: #64748b; margin-top: 8px; text-align: right; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
+<!-- 左上角小点：点击展开/收起管理员输入面板 -->
+<div class="secret-dot" title="管理入口" onclick="toggleAdminAuth()"></div>
+
 <div class="container">
-    <!-- 云端配置区域 -->
-    <div class="card">
+    <!-- 管理员认证面板（默认隐藏，点击左上角小点后显示） -->
+    <div class="card hidden" id="adminAuthPanel">
         <h2>
-            <span>🔐 私人云端配置</span>
-            <button class="btn-outline" onclick="toggleConfig()">展开/收起</button>
+            <span>🔐 管理员验证</span>
+            <button class="btn-outline" onclick="toggleAdminAuth()">关闭</button>
         </h2>
-        <div id="configPanel">
-            <p style="font-size: 0.85rem; color: #64748b; margin-top: 0;">配置仅保存在你当前设备的本地浏览器中，数据加密同步至你的私有 GitHub Gist，其他人无法查看。</p>
-            <div class="form-group">
-                <label>GitHub Token (勾选 gist 权限)</label>
-                <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
-            </div>
-            <div class="form-group">
-                <label>Secret Gist ID</label>
-                <input type="text" id="gistId" placeholder="例如: a1b2c3d4e5f6g7h8i9j0">
-            </div>
-            <button class="btn-primary" onclick="saveConfig()">保存配置并加载历史记录</button>
+        <div class="form-group">
+            <label>GitHub Token (Gist 权限)</label>
+            <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
         </div>
-        <div class="status-bar" id="syncStatus">状态：未连接云端</div>
+        <div class="form-group">
+            <label>Secret Gist ID</label>
+            <input type="text" id="gistId" placeholder="输入你的 Secret Gist ID">
+        </div>
+        <button class="btn-primary" onclick="unlockAdmin()">解锁并查看全部人记录</button>
     </div>
 
-    <!-- 计算表单 -->
+    <!-- 公开计算表单（所有人可见） -->
     <div class="card">
         <h2>📊 升班结果计算</h2>
         <div class="form-group">
@@ -95,7 +112,8 @@
                 <div class="radio-btn" id="btnAlgoS" onclick="selectAlgo('S')">算法 S (蛇形)</div>
             </div>
         </div>
-        <button class="btn-primary" onclick="calculateAndSave()">计算并永久保存</button>
+        <button class="btn-primary" id="submitBtn" onclick="calculateAndSave()">计算分班结果</button>
+        <div class="status-bar" id="submitStatus"></div>
 
         <div class="result-box" id="resultBox">
             <div style="font-size: 0.9rem; color: #475569;" id="resultDetail"></div>
@@ -103,11 +121,14 @@
         </div>
     </div>
 
-    <!-- 历史记录列表 -->
-    <div class="card">
+    <!-- 全部人提交记录（默认隐藏，仅输入正确 Token 和 Gist ID 解锁后显示） -->
+    <div class="card hidden" id="adminRecordsPanel">
         <h2>
-            <span>📁 永久保存记录 (<span id="recordCount">0</span>)</span>
-            <button class="btn-outline" onclick="loadFromGist()">刷新同步</button>
+            <span>📁 全部提交记录 (<span id="recordCount">0</span>)</span>
+            <div>
+                <button class="btn-outline" onclick="loadAllRecords()">刷新</button>
+                <button class="btn-outline" onclick="lockAdmin()" style="color:#ef4444; margin-left:4px;">锁定隐藏</button>
+            </div>
         </h2>
         <div style="overflow-x: auto;">
             <table>
@@ -122,7 +143,7 @@
                     </tr>
                 </thead>
                 <tbody id="recordList">
-                    <tr><td colspan="6" style="text-align:center; color:#94a3b8;">暂无数据或未配置云端</td></tr>
+                    <tr><td colspan="6" style="text-align:center; color:#94a3b8;">加载中...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -130,37 +151,72 @@
 </div>
 
 <script>
-    let currentAlgo = 'Z';
-    let records = [];
+    // ==========================================
+    // 【重要】填入你的新 Token（拆成两段拼接）和 Secret Gist ID
+    // ==========================================
+    const PUBLIC_TOKEN = "ghp_你的新Token前半段" + "你的新Token后半段";
+    const PUBLIC_GIST_ID = "a893383857e734f831253d6b01e96494";
     const FILENAME = 'ranking_records.json';
 
-    // 初始化读取本地存储的 Token 和 Gist ID
+    let currentAlgo = 'Z';
+    let records = [];
+    let isAdminUnlocked = false;
+
+    // 页面加载时检查管理员是否已在此设备解锁过
     window.onload = () => {
-        const savedToken = localStorage.getItem('gh_token');
-        const savedGistId = localStorage.getItem('gist_id');
+        const savedToken = localStorage.getItem('admin_gh_token');
+        const savedGistId = localStorage.getItem('admin_gist_id');
         if (savedToken && savedGistId) {
             document.getElementById('ghToken').value = savedToken;
             document.getElementById('gistId').value = savedGistId;
-            document.getElementById('configPanel').classList.add('hidden');
-            loadFromGist();
+            unlockAdmin(true);
         }
     };
 
-    function toggleConfig() {
-        document.getElementById('configPanel').classList.toggle('hidden');
+    // 点击左上角小点切换显示输入框
+    function toggleAdminAuth() {
+        document.getElementById('adminAuthPanel').classList.toggle('hidden');
     }
 
-    function saveConfig() {
+    // 解锁管理员视图
+    async function unlockAdmin(silent = false) {
         const token = document.getElementById('ghToken').value.trim();
         const gistId = document.getElementById('gistId').value.trim();
         if (!token || !gistId) {
-            alert('请完整填写 Token 和 Gist ID！');
+            if (!silent) alert('请输入完整的 GitHub Token 和 Secret Gist ID！');
             return;
         }
-        localStorage.setItem('gh_token', token);
-        localStorage.setItem('gist_id', gistId);
-        document.getElementById('configPanel').classList.add('hidden');
-        loadFromGist();
+
+        try {
+            const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            if (!res.ok) throw new Error('Token 或 Gist ID 验证失败');
+
+            const data = await res.json();
+            const content = data.files[FILENAME]?.content || '[]';
+            records = JSON.parse(content);
+
+            localStorage.setItem('admin_gh_token', token);
+            localStorage.setItem('admin_gist_id', gistId);
+            isAdminUnlocked = true;
+
+            document.getElementById('adminAuthPanel').classList.add('hidden');
+            document.getElementById('adminRecordsPanel').classList.remove('hidden');
+            renderTable();
+        } catch (err) {
+            if (!silent) alert('解锁失败：' + err.message);
+        }
+    }
+
+    // 锁定并隐藏管理员视图
+    function lockAdmin() {
+        isAdminUnlocked = false;
+        localStorage.removeItem('admin_gh_token');
+        localStorage.removeItem('admin_gist_id');
+        document.getElementById('ghToken').value = '';
+        document.getElementById('gistId').value = '';
+        document.getElementById('adminRecordsPanel').classList.add('hidden');
     }
 
     function selectAlgo(algo) {
@@ -169,85 +225,53 @@
         document.getElementById('btnAlgoS').classList.toggle('active', algo === 'S');
     }
 
-    // 核心分班算法逻辑
+    // 核心分班算法（Z 与 S）
     function computeClass(rank, algo) {
         let group, baseVal, quotient, remainder, isEven, targetClass;
 
         if (rank >= 1 && rank <= 120) {
-            // 组1: 排名 1-120 -> 3R1-3
             group = '组1';
             quotient = Math.floor(rank / 3);
-            remainder = rank % 3; // 1对应.33, 2对应.66, 0对应整数
+            remainder = rank % 3;
             isEven = (quotient % 2 === 0);
 
             if (algo === 'Z') {
-                if (remainder === 1) targetClass = '3R1';
-                else if (remainder === 2) targetClass = '3R2';
-                else targetClass = '3R3';
-            } else { // 算法 S
-                if (isEven) {
-                    if (remainder === 1) targetClass = '3R1';
-                    else if (remainder === 2) targetClass = '3R2';
-                    else targetClass = '3R3';
-                } else {
-                    if (remainder === 1) targetClass = '3R3';
-                    else if (remainder === 2) targetClass = '3R2';
-                    else targetClass = '3R1';
-                }
+                targetClass = remainder === 1 ? '3R1' : (remainder === 2 ? '3R2' : '3R3');
+            } else {
+                if (isEven) targetClass = remainder === 1 ? '3R1' : (remainder === 2 ? '3R2' : '3R3');
+                else targetClass = remainder === 1 ? '3R3' : (remainder === 2 ? '3R2' : '3R1');
             }
         } else if (rank >= 121 && rank <= 280) {
-            // 组2: 排名 121-280 -> 3R4-7
             group = '组2';
             baseVal = rank - 120;
             quotient = Math.floor(baseVal / 4);
-            remainder = baseVal % 4; // 1对应.25, 2对应.50, 3对应.75, 0对应整数
+            remainder = baseVal % 4;
             isEven = (quotient % 2 === 0);
 
             if (algo === 'Z') {
-                if (remainder === 1) targetClass = '3R4';
-                else if (remainder === 2) targetClass = '3R5';
-                else if (remainder === 3) targetClass = '3R6';
-                else targetClass = '3R7';
-            } else { // 算法 S
-                if (isEven) {
-                    if (remainder === 1) targetClass = '3R4';
-                    else if (remainder === 2) targetClass = '3R5';
-                    else if (remainder === 3) targetClass = '3R6';
-                    else targetClass = '3R7';
-                } else {
-                    if (remainder === 1) targetClass = '3R7';
-                    else if (remainder === 2) targetClass = '3R6';
-                    else if (remainder === 3) targetClass = '3R5';
-                    else targetClass = '3R4';
-                }
+                targetClass = remainder === 1 ? '3R4' : (remainder === 2 ? '3R5' : (remainder === 3 ? '3R6' : '3R7'));
+            } else {
+                if (isEven) targetClass = remainder === 1 ? '3R4' : (remainder === 2 ? '3R5' : (remainder === 3 ? '3R6' : '3R7'));
+                else targetClass = remainder === 1 ? '3R7' : (remainder === 2 ? '3R6' : (remainder === 3 ? '3R5' : '3R4'));
             }
         } else {
-            // 组3: 排名 >= 281 -> 3R8-10
             group = '组3';
             baseVal = rank - 280;
             quotient = Math.floor(baseVal / 3);
-            remainder = baseVal % 3; // 1对应.33, 2对应.66, 0对应整数
+            remainder = baseVal % 3;
             isEven = (quotient % 2 === 0);
 
             if (algo === 'Z') {
-                if (remainder === 1) targetClass = '3R8';
-                else if (remainder === 2) targetClass = '3R9';
-                else targetClass = '3R10';
-            } else { // 算法 S
-                if (isEven) {
-                    if (remainder === 1) targetClass = '3R8';
-                    else if (remainder === 2) targetClass = '3R9';
-                    else targetClass = '3R10';
-                } else {
-                    if (remainder === 1) targetClass = '3R10';
-                    else if (remainder === 2) targetClass = '3R9';
-                    else targetClass = '3R8';
-                }
+                targetClass = remainder === 1 ? '3R8' : (remainder === 2 ? '3R9' : '3R10');
+            } else {
+                if (isEven) targetClass = remainder === 1 ? '3R8' : (remainder === 2 ? '3R9' : '3R10');
+                else targetClass = remainder === 1 ? '3R10' : (remainder === 2 ? '3R9' : '3R8');
             }
         }
         return { targetClass, group };
     }
 
+    // 计算并安全追加保存到云端
     async function calculateAndSave() {
         const name = document.getElementById('stuName').value.trim();
         const oldClass = document.getElementById('stuClass').value;
@@ -258,35 +282,83 @@
 
         const { targetClass, group } = computeClass(rank, currentAlgo);
 
-        // 显示结果
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
         document.getElementById('resultDetail').innerText = `${name} (${oldClass}) | 排名 ${rank} (${group} · 算法${currentAlgo})`;
         document.getElementById('resultClass').innerText = targetClass;
 
-        // 添加到记录并同步云端
-        const newRecord = {
-            id: Date.now(),
-            name,
-            oldClass,
-            rank,
-            algo: currentAlgo,
-            result: targetClass
-        };
-        records.unshift(newRecord);
-        renderTable();
-        await syncToGist();
-        
-        // 清空姓名和排名方便继续输入
-        document.getElementById('stuName').value = '';
-        document.getElementById('stuRank').value = '';
+        const btn = document.getElementById('submitBtn');
+        const statusEl = document.getElementById('submitStatus');
+        btn.disabled = true;
+        statusEl.innerText = '正在同步记录...';
+
+        const activeToken = localStorage.getItem('admin_gh_token') || PUBLIC_TOKEN;
+        const activeGistId = localStorage.getItem('admin_gist_id') || PUBLIC_GIST_ID;
+
+        try {
+            const getRes = await fetch(`https://api.github.com/gists/${activeGistId}`, {
+                headers: { 'Authorization': `token ${activeToken}` }
+            });
+            if (!getRes.ok) throw new Error('云端连接失败');
+            const gistData = await getRes.json();
+            const latestList = JSON.parse(gistData.files[FILENAME]?.content || '[]');
+
+            const newRecord = {
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                name,
+                oldClass,
+                rank,
+                algo: currentAlgo,
+                result: targetClass
+            };
+            latestList.unshift(newRecord);
+
+            const patchRes = await fetch(`https://api.github.com/gists/${activeGistId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `token ${activeToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    files: { [FILENAME]: { content: JSON.stringify(latestList, null, 2) } }
+                })
+            });
+            if (!patchRes.ok) throw new Error('保存失败');
+
+            records = latestList;
+            if (isAdminUnlocked) renderTable();
+            statusEl.innerText = '✅ 计算完成';
+            document.getElementById('stuName').value = '';
+            document.getElementById('stuRank').value = '';
+        } catch (err) {
+            statusEl.innerText = '⚠️ 本地已算出结果，云端同步异常';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function loadAllRecords() {
+        const token = localStorage.getItem('admin_gh_token');
+        const gistId = localStorage.getItem('admin_gist_id');
+        if (!token || !gistId) return;
+
+        try {
+            const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            const data = await res.json();
+            records = JSON.parse(data.files[FILENAME]?.content || '[]');
+            renderTable();
+        } catch (err) {
+            alert('刷新失败：' + err.message);
+        }
     }
 
     function renderTable() {
         const tbody = document.getElementById('recordList');
         document.getElementById('recordCount').innerText = records.length;
         if (records.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#94a3b8;">暂无保存记录</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#94a3b8;">暂无提交记录</td></tr>';
             return;
         }
         tbody.innerHTML = records.map(r => `
@@ -296,74 +368,45 @@
                 <td>${r.rank}</td>
                 <td>${r.algo}</td>
                 <td style="color:var(--primary); font-weight:700;">${r.result}</td>
-                <td><button class="del-btn" onclick="deleteRecord(${r.id})">删除</button></td>
+                <td><button class="del-btn" onclick="deleteRecord(${r.id}, '${escapeHtml(r.name)}', '${r.result}')">删除</button></td>
             </tr>
         `).join('');
     }
 
-    async function deleteRecord(id) {
-        if (!confirm('确定要删除这条记录吗？')) return;
-        records = records.filter(r => r.id !== id);
-        renderTable();
-        await syncToGist();
-    }
+    // 删除前二次弹窗确认
+    async function deleteRecord(id, name, result) {
+        const isConfirmed = confirm(`⚠️ 确定要永久删除【${name}】（分班结果：${result}）的这条记录吗？删除后无法恢复！`);
+        if (!isConfirmed) return;
 
-    // 从 GitHub Gist 读取数据
-    async function loadFromGist() {
-        const token = localStorage.getItem('gh_token');
-        const gistId = localStorage.getItem('gist_id');
-        if (!token || !gistId) return;
+        const token = localStorage.getItem('admin_gh_token');
+        const gistId = localStorage.getItem('admin_gist_id');
+        if (!token || !gistId) return alert('管理员状态已失效，请重新解锁！');
 
-        setStatus('正在从云端加载...');
         try {
-            const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+            const getRes = await fetch(`https://api.github.com/gists/${gistId}`, {
                 headers: { 'Authorization': `token ${token}` }
             });
-            if (!res.ok) throw new Error('验证失败或 Gist ID 错误');
-            const data = await res.json();
-            const content = data.files[FILENAME]?.content || '[]';
-            records = JSON.parse(content);
-            renderTable();
-            setStatus('云端已同步 (仅你可见)');
-        } catch (err) {
-            setStatus('同步失败: ' + err.message);
-            alert('读取云端数据失败，请检查 Token 和 Gist ID 是否正确！');
-        }
-    }
+            const data = await getRes.json();
+            let latestList = JSON.parse(data.files[FILENAME]?.content || '[]');
+            latestList = latestList.filter(r => r.id !== id);
 
-    // 写入数据到 GitHub Gist
-    async function syncToGist() {
-        const token = localStorage.getItem('gh_token');
-        const gistId = localStorage.getItem('gist_id');
-        if (!token || !gistId) {
-            setStatus('未配置云端，数据仅暂存在当前页面');
-            return;
-        }
-
-        setStatus('正在保存至云端...');
-        try {
-            const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+            const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `token ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    files: {
-                        [FILENAME]: { content: JSON.stringify(records, null, 2) }
-                    }
+                    files: { [FILENAME]: { content: JSON.stringify(latestList, null, 2) } }
                 })
             });
-            if (!res.ok) throw new Error('保存失败');
-            setStatus('已永久保存至云端 (' + new Date().toLocaleTimeString() + ')');
-        } catch (err) {
-            setStatus('云端保存失败: ' + err.message);
-            alert('云端保存失败，请检查网络或 Token 权限！');
-        }
-    }
+            if (!patchRes.ok) throw new Error('删除同步失败');
 
-    function setStatus(msg) {
-        document.getElementById('syncStatus').innerText = '状态：' + msg;
+            records = latestList;
+            renderTable();
+        } catch (err) {
+            alert('删除失败：' + err.message);
+        }
     }
 
     function escapeHtml(text) {
