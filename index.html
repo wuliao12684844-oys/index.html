@@ -45,13 +45,19 @@
         button.btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 6px; }
         button.btn-primary:hover { background: var(--primary-hover); }
         button.btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
-        button.btn-outline { background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        button.btn-outline { background: #ffffff; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; color: #1e293b; font-weight: 600; }
+        button.btn-outline:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+        button.btn-outline:disabled { opacity: 0.45; cursor: not-allowed; }
+        button.btn-outline.active-ctrl { background: var(--primary); color: #ffffff; border-color: var(--primary); }
         .result-box { margin-top: 16px; padding: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; text-align: center; display: none; }
         .result-class { font-size: 2rem; font-weight: 800; color: var(--primary); margin: 4px 0; }
 
         /* 分班路径动画样式 */
         .anim-panel { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #bfdbfe; text-align: left; }
-        .anim-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #334155; margin-bottom: 10px; font-weight: 600; }
+        .anim-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.85rem; color: #334155; margin-bottom: 10px; font-weight: 600; flex-wrap: wrap; }
+        .anim-controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+        .speed-group { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 0.8rem; color: #475569; }
+        .speed-select { width: auto; padding: 5px 8px; font-size: 0.82rem; border-radius: 6px; background: #ffffff; }
         .anim-grid { display: grid; gap: 8px; margin-bottom: 10px; }
         .anim-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
         .anim-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
@@ -145,7 +151,23 @@
             <div class="anim-panel" id="animPanel">
                 <div class="anim-header">
                     <span id="animModeLabel">分班路径演示</span>
-                    <button class="btn-outline" type="button" onclick="replayLastAnimation()">重播动画</button>
+                    <span id="animProgressLabel" style="color:#2563eb;"></span>
+                </div>
+                <div class="anim-controls">
+                    <button class="btn-outline" type="button" id="btnPrevRound" onclick="stepRound(-1)">上一轮</button>
+                    <button class="btn-outline" type="button" id="btnNextRound" onclick="stepRound(1)">下一轮</button>
+                    <button class="btn-outline" type="button" id="btnPauseToggle" onclick="togglePause()">暂停</button>
+                    <button class="btn-outline" type="button" onclick="replayLastAnimation()">重播</button>
+                    <div class="speed-group">
+                        <span>速度</span>
+                        <select class="speed-select" id="animSpeedSelect" onchange="changeSpeed()">
+                            <option value="0.2">0.2x</option>
+                            <option value="0.5">0.5x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2x</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="anim-grid cols-3" id="animGrid"></div>
                 <div class="anim-caption" id="animCaption"></div>
@@ -194,8 +216,14 @@
     let currentAlgo = 'Z';
     let records = [];
     let isAdminUnlocked = false;
+
+    // 动画状态管理
     let animTimer = null;
     let lastAnimPayload = null;
+    let currentAnimPlan = null;
+    let currentStepIndex = 0;
+    let isPaused = false;
+    let speedMultiplier = 1;
 
     // 页面加载时检查管理员是否已在此设备解锁过
     window.onload = () => {
@@ -345,26 +373,125 @@
             });
         }
 
-        return { cols, steps, targetRank: rank };
+        const totalRounds = Math.ceil(offset / n);
+        return { cols, steps, targetRank: rank, totalRounds };
     }
 
-    function playAnimation(rank, algo, targetClass) {
+    function stopAutoTimer() {
         if (animTimer) {
             clearInterval(animTimer);
             animTimer = null;
         }
+    }
+
+    // 渲染指定步数的画面状态
+    function renderStepAt(index) {
+        if (!currentAnimPlan || !lastAnimPayload) return;
+        const totalSteps = currentAnimPlan.steps.length;
+        currentStepIndex = Math.max(0, Math.min(index, totalSteps - 1));
+
+        const step = currentAnimPlan.steps[currentStepIndex];
+        const isLast = (currentStepIndex === totalSteps - 1);
+        const captionEl = document.getElementById('animCaption');
+        const progressEl = document.getElementById('animProgressLabel');
+
+        // 重置所有格子
+        currentAnimPlan.cols.forEach((_, idx) => {
+            const cell = document.getElementById(`animCell_${idx}`);
+            const rankLabel = document.getElementById(`animRank_${idx}`);
+            if (cell) cell.className = 'anim-cell';
+            if (rankLabel) rankLabel.textContent = '-';
+        });
+
+        // 标记已走过的格子（取最近一次经过该列的名次）
+        for (let i = 0; i <= currentStepIndex; i++) {
+            const s = currentAnimPlan.steps[i];
+            const cell = document.getElementById(`animCell_${s.colIndex}`);
+            const rankLabel = document.getElementById(`animRank_${s.colIndex}`);
+            if (cell) cell.classList.add('visited');
+            if (rankLabel) rankLabel.textContent = `#${s.currentVal}`;
+        }
+
+        const activeCell = document.getElementById(`animCell_${step.colIndex}`);
+        if (activeCell) {
+            activeCell.classList.remove('visited');
+            activeCell.classList.add(isLast ? 'final' : 'active');
+        }
+
+        progressEl.textContent = `第 ${step.row + 1}/${currentAnimPlan.totalRounds} 轮 · 第 ${currentStepIndex + 1}/${totalSteps} 步`;
+
+        if (!isLast) {
+            captionEl.textContent = `第 ${step.currentVal} 名 ${step.dirArrow} ${step.className}（第 ${step.row + 1} 轮）`;
+        } else {
+            const { rank, algo, targetClass } = lastAnimPayload;
+            captionEl.innerHTML = `排名 <strong>${rank}</strong> 按 <strong>算法 ${algo}</strong> ${algo === 'S' ? `（${step.dirArrow} 蛇形）` : '（→ 顺序）'} 落在 <strong>${targetClass}</strong>`;
+        }
+
+        updateControlButtons();
+    }
+
+    function updateControlButtons() {
+        const pauseBtn = document.getElementById('btnPauseToggle');
+        const prevBtn = document.getElementById('btnPrevRound');
+        const nextBtn = document.getElementById('btnNextRound');
+
+        if (!currentAnimPlan) return;
+        const currentRound = currentAnimPlan.steps[currentStepIndex].row;
+        const minRound = 0;
+        const maxRound = currentAnimPlan.totalRounds - 1;
+
+        prevBtn.disabled = currentRound <= minRound;
+        nextBtn.disabled = currentRound >= maxRound;
+
+        const isFinished = currentStepIndex >= currentAnimPlan.steps.length - 1;
+        if (isFinished) {
+            pauseBtn.textContent = '已完成';
+            pauseBtn.classList.remove('active-ctrl');
+            pauseBtn.disabled = true;
+        } else {
+            pauseBtn.disabled = false;
+            pauseBtn.textContent = isPaused ? '继续' : '暂停';
+            pauseBtn.classList.toggle('active-ctrl', isPaused);
+        }
+    }
+
+    // 放慢后的基础间隔（ms），再按倍速换算
+    function getStepIntervalMs() {
+        const baseMs = 420;
+        return Math.max(80, Math.round(baseMs / speedMultiplier));
+    }
+
+    function startAutoTimer() {
+        stopAutoTimer();
+        if (isPaused || !currentAnimPlan) return;
+        if (currentStepIndex >= currentAnimPlan.steps.length - 1) return;
+
+        animTimer = setInterval(() => {
+            if (currentStepIndex < currentAnimPlan.steps.length - 1) {
+                renderStepAt(currentStepIndex + 1);
+            } else {
+                stopAutoTimer();
+                updateControlButtons();
+            }
+        }, getStepIntervalMs());
+    }
+
+    function playAnimation(rank, algo, targetClass) {
+        stopAutoTimer();
+        isPaused = false;
+        currentStepIndex = 0;
 
         const plan = buildAnimationPlan(rank, algo);
+        currentAnimPlan = plan;
         lastAnimPayload = { rank, algo, targetClass };
 
         const gridEl = document.getElementById('animGrid');
         const modeLabelEl = document.getElementById('animModeLabel');
-        const captionEl = document.getElementById('animCaption');
 
         gridEl.className = `anim-grid cols-${plan.cols.length}`;
         modeLabelEl.textContent = algo === 'Z'
-            ? `算法 Z 演示（每行 ${plan.cols.length} 班，同向循环 →）`
-            : `算法 S 演示（每行 ${plan.cols.length} 班，蛇形往返 → / ←）`;
+            ? `算法 Z（每行 ${plan.cols.length} 班，→ 顺序）`
+            : `算法 S（每行 ${plan.cols.length} 班，→ / ← 蛇形）`;
 
         gridEl.innerHTML = plan.cols.map((cls, idx) => `
             <div class="anim-cell" id="animCell_${idx}">
@@ -373,44 +500,41 @@
             </div>
         `).join('');
 
-        const totalSteps = plan.steps.length;
-        const intervalMs = totalSteps > 45 ? 25 : (totalSteps > 20 ? 55 : 140);
+        renderStepAt(0);
+        startAutoTimer();
+    }
 
-        let i = 0;
-        captionEl.textContent = `开始从第 ${plan.steps[0].currentVal} 名分发...`;
+    function togglePause() {
+        if (!currentAnimPlan) return;
+        isPaused = !isPaused;
+        if (isPaused) {
+            stopAutoTimer();
+        } else {
+            startAutoTimer();
+        }
+        updateControlButtons();
+    }
 
-        const tick = () => {
-            const step = plan.steps[i];
-            document.querySelectorAll('.anim-cell').forEach((cell) => {
-                cell.classList.remove('active');
-            });
+    // 跳转到上一轮（-1）或下一轮（+1）的首步并暂停，方便逐轮查看
+    function stepRound(delta) {
+        if (!currentAnimPlan) return;
+        stopAutoTimer();
+        isPaused = true;
 
-            const activeCell = document.getElementById(`animCell_${step.colIndex}`);
-            const activeRankEl = document.getElementById(`animRank_${step.colIndex}`);
-            if (activeCell && activeRankEl) {
-                activeCell.classList.add('visited');
-                activeCell.classList.add('active');
-                activeRankEl.textContent = `#${step.currentVal}`;
-            }
+        const currentRound = currentAnimPlan.steps[currentStepIndex].row;
+        const targetRound = Math.max(0, Math.min(currentRound + delta, currentAnimPlan.totalRounds - 1));
 
-            const isLast = (i === totalSteps - 1);
-            if (!isLast) {
-                captionEl.textContent = `第 ${step.currentVal} 名 ${step.dirArrow} ${step.className}（第 ${step.row + 1} 轮）`;
-                i++;
-            } else {
-                clearInterval(animTimer);
-                animTimer = null;
-                if (activeCell) {
-                    activeCell.classList.remove('active');
-                    activeCell.classList.add('final');
-                }
-                captionEl.innerHTML = `排名 <strong>${rank}</strong> 按 <strong>算法 ${algo}</strong> ${algo === 'S' ? `（${step.dirArrow} 蛇形）` : '（→ 顺序）'} 落在 <strong>${targetClass}</strong>`;
-            }
-        };
+        const firstIdxInRound = currentAnimPlan.steps.findIndex(s => s.row === targetRound);
+        if (firstIdxInRound !== -1) {
+            renderStepAt(firstIdxInRound);
+        }
+    }
 
-        tick();
-        if (totalSteps > 1) {
-            animTimer = setInterval(tick, intervalMs);
+    function changeSpeed() {
+        const val = parseFloat(document.getElementById('animSpeedSelect').value);
+        speedMultiplier = Number.isFinite(val) && val > 0 ? val : 1;
+        if (!isPaused && animTimer) {
+            startAutoTimer();
         }
     }
 
