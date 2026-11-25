@@ -68,6 +68,11 @@
 
         .result-box { margin-top: 16px; padding: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; text-align: center; display: none; transition: background 0.3s, border-color 0.3s; }
         [data-theme="dark"] .result-box { background: #1e3a8a; border-color: #1e40af; }
+        
+        /* 结果详情文字深色模式适配 */
+        #resultDetail { font-size: 0.9rem; color: #475569; }
+        [data-theme="dark"] #resultDetail { color: #cbd5e1; }
+
         .result-class { font-size: 2rem; font-weight: 800; color: var(--primary); margin: 4px 0; }
 
         /* 云端同步失败提示框 */
@@ -86,8 +91,22 @@
         .anim-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.85rem; color: #334155; margin-bottom: 10px; font-weight: 600; flex-wrap: wrap; }
         [data-theme="dark"] .anim-header { color: #cbd5e1; }
         .anim-controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+        
+        /* 速度文字及选择框深色模式适配 */
         .speed-group { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 0.8rem; color: #475569; }
-        .speed-select { width: auto; padding: 5px 8px; font-size: 0.82rem; border-radius: 6px; background: #ffffff; }
+        [data-theme="dark"] .speed-group { color: #cbd5e1; }
+        
+        .speed-select { 
+            width: auto; 
+            padding: 5px 8px; 
+            font-size: 0.82rem; 
+            border-radius: 6px; 
+            background: var(--card); 
+            color: var(--text);
+            border: 1px solid var(--border);
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        
         .anim-grid { display: grid; gap: 8px; margin-bottom: 10px; }
         .anim-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
         .anim-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
@@ -195,7 +214,7 @@
 
         <!-- 仅在云端同步成功后显示结果与动画 -->
         <div class="result-box" id="resultBox">
-            <div style="font-size: 0.9rem; color: #475569;" id="resultDetail"></div>
+            <div id="resultDetail"></div>
             <div class="result-class" id="resultClass"></div>
 
             <div class="anim-panel" id="animPanel">
