@@ -13,8 +13,19 @@
             --text: #1e293b;
             --border: #e2e8f0;
         }
+        
+        /* 深色模式变量覆盖 */
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --border: #334155;
+        }
+
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 16px; display: flex; justify-content: center; position: relative; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 16px; display: flex; justify-content: center; position: relative; transition: background 0.3s, color 0.3s; }
 
         /* 左上角隐蔽小点按钮 */
         .secret-dot {
@@ -33,11 +44,11 @@
         .secret-dot:hover { opacity: 1; background: var(--primary); }
 
         .container { width: 100%; max-width: 600px; margin-top: 8px; }
-        .card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px; border: 1px solid var(--border); }
+        .card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px; border: 1px solid var(--border); transition: background 0.3s, border-color 0.3s; }
         h2 { margin-top: 0; font-size: 1.25rem; display: flex; justify-content: space-between; align-items: center; }
         .form-group { margin-bottom: 14px; }
         label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; }
-        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; background: var(--card); color: var(--text); transition: background 0.3s, border-color 0.3s; }
         input:focus, select:focus { border-color: var(--primary); }
         .radio-group { display: flex; gap: 12px; }
         .radio-btn { flex: 1; text-align: center; padding: 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
@@ -45,16 +56,35 @@
         button.btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 6px; }
         button.btn-primary:hover { background: var(--primary-hover); }
         button.btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
-        button.btn-outline { background: #ffffff; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; color: #1e293b; font-weight: 600; }
+        button.btn-outline { background: var(--card); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; color: var(--text); font-weight: 600; transition: background 0.3s, color 0.3s, border-color 0.3s; }
         button.btn-outline:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
         button.btn-outline:disabled { opacity: 0.45; cursor: not-allowed; }
         button.btn-outline.active-ctrl { background: var(--primary); color: #ffffff; border-color: var(--primary); }
-        .result-box { margin-top: 16px; padding: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; text-align: center; display: none; }
+
+        /* 主题切换按钮样式 */
+        #themeToggle {
+            padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; border-radius: 50%;
+        }
+
+        .result-box { margin-top: 16px; padding: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; text-align: center; display: none; transition: background 0.3s, border-color 0.3s; }
+        [data-theme="dark"] .result-box { background: #1e3a8a; border-color: #1e40af; }
         .result-class { font-size: 2rem; font-weight: 800; color: var(--primary); margin: 4px 0; }
+
+        /* 云端同步失败提示框 */
+        .sync-error-box { margin-top: 16px; padding: 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; text-align: center; display: none; color: #991b1b; }
+        [data-theme="dark"] .sync-error-box { background: #451a1a; border-color: #7f1d1d; color: #fca5a5; }
+        .sync-error-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 6px; }
+        .sync-error-desc { font-size: 0.85rem; color: #b91c1c; margin-bottom: 12px; }
+        [data-theme="dark"] .sync-error-desc { color: #f87171; }
+        .btn-retry { background: #dc2626; color: #ffffff; border: none; padding: 9px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+        .btn-retry:hover { background: #b91c1c; }
+        .btn-retry:disabled { background: #fca5a5; cursor: not-allowed; }
 
         /* 分班路径动画样式 */
         .anim-panel { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #bfdbfe; text-align: left; }
+        [data-theme="dark"] .anim-panel { border-top-color: #334155; }
         .anim-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.85rem; color: #334155; margin-bottom: 10px; font-weight: 600; flex-wrap: wrap; }
+        [data-theme="dark"] .anim-header { color: #cbd5e1; }
         .anim-controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
         .speed-group { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 0.8rem; color: #475569; }
         .speed-select { width: auto; padding: 5px 8px; font-size: 0.82rem; border-radius: 6px; background: #ffffff; }
@@ -76,10 +106,18 @@
         .anim-cell.final { background: var(--primary); border-color: var(--primary); transform: scale(1.06); }
         .anim-cell.final .cls-name, .anim-cell.final .rank-num { color: #ffffff; }
         .anim-caption { font-size: 0.85rem; color: #334155; background: #ffffff; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        
+        /* 深色模式动画覆盖 */
+        [data-theme="dark"] .anim-cell { background: #1e293b; border-color: #475569; }
+        [data-theme="dark"] .anim-cell .cls-name { color: #f8fafc; }
+        [data-theme="dark"] .anim-cell.visited { background: #334155; border-color: #64748b; }
+        [data-theme="dark"] .anim-cell.active { background: #1e3a8a; border-color: var(--primary); }
+        [data-theme="dark"] .anim-caption { background: #0f172a; border-color: #334155; color: #cbd5e1; }
 
         table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 10px; }
         th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: #f1f5f9; font-weight: 600; }
+        [data-theme="dark"] th { background: #334155; }
         .del-btn { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
         .status-bar { font-size: 0.8rem; color: #64748b; margin-top: 8px; text-align: right; }
         .hidden { display: none !important; }
@@ -110,7 +148,11 @@
 
     <!-- 公开计算表单（所有人可见） -->
     <div class="card">
-        <h2>📊 升班结果计算</h2>
+        <!-- 在标题右侧添加了主题切换按钮 (即图片黑圈位置) -->
+        <h2>
+            <span>📊 升班结果计算</span>
+            <button class="btn-outline" id="themeToggle" onclick="toggleDarkMode()" title="切换深色/浅色模式">🌙</button>
+        </h2>
         <div class="form-group">
             <label>学生姓名</label>
             <input type="text" id="stuName" placeholder="请输入名字">
@@ -144,6 +186,14 @@
         <button class="btn-primary" id="submitBtn" onclick="calculateAndSave()">计算分班结果</button>
         <div class="status-bar" id="submitStatus"></div>
 
+        <!-- 云端不同步时显示在结果处，让用户重试 -->
+        <div class="sync-error-box" id="syncErrorBox">
+            <div class="sync-error-title">⚠️ 云端同步失败，暂不显示分班结果与动画</div>
+            <div class="sync-error-desc" id="syncErrorDesc">网络或云端服务异常，请点击下方按钮重试。</div>
+            <button class="btn-retry" type="button" id="retrySyncBtn" onclick="retryCloudSync()">重试</button>
+        </div>
+
+        <!-- 仅在云端同步成功后显示结果与动画 -->
         <div class="result-box" id="resultBox">
             <div style="font-size: 0.9rem; color: #475569;" id="resultDetail"></div>
             <div class="result-class" id="resultClass"></div>
@@ -151,7 +201,7 @@
             <div class="anim-panel" id="animPanel">
                 <div class="anim-header">
                     <span id="animModeLabel">分班路径演示</span>
-                    <span id="animProgressLabel" style="color:#2563eb;"></span>
+                    <span id="animProgressLabel" style="color:var(--primary);"></span>
                 </div>
                 <div class="anim-controls">
                     <button class="btn-outline" type="button" id="btnPrevRound" onclick="stepRound(-1)">上一轮</button>
@@ -166,6 +216,8 @@
                             <option value="1" selected>1x</option>
                             <option value="1.5">1.5x</option>
                             <option value="2">2x</option>
+                            <option value="3">3x</option>
+                            <option value="4">4x</option>
                         </select>
                     </div>
                 </div>
@@ -206,16 +258,16 @@
 
 <script>
     // ==========================================
-    // 已填入你的 Token 与 Secret Gist ID
-    // 若你的 Gist 文件名为 ranking_records.json，请将下一行改为 'ranking_records.json'
+    // 已按要求填入 Token（分两段）与 Gist ID、文件名
     // ==========================================
     const PUBLIC_TOKEN = "ghp_Nt399jJMQ5XzAH" + "LcZpIOgfVTq5Kv160zBkzm";
     const PUBLIC_GIST_ID = "a893383857e734f831253d6b01e96494";
-    const FILENAME = 'ranking_rbt.json';
+    const FILENAME = 'ranking_records.json';
 
     let currentAlgo = 'Z';
     let records = [];
     let isAdminUnlocked = false;
+    let pendingSubmission = null;
 
     // 动画状态管理
     let animTimer = null;
@@ -225,8 +277,33 @@
     let isPaused = false;
     let speedMultiplier = 1;
 
-    // 页面加载时检查管理员是否已在此设备解锁过
-    window.onload = () => {
+    // ==========================================
+    // 1. 深色/浅色模式管理
+    // ==========================================
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeButton(savedTheme);
+    }
+
+    function toggleDarkMode() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeButton(newTheme);
+    }
+
+    function updateThemeButton(theme) {
+        const btn = document.getElementById('themeToggle');
+        if (btn) btn.innerText = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // 页面加载时初始化
+    window.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+        
+        // 检查管理员是否已在此设备解锁过
         const savedToken = localStorage.getItem('admin_gh_token');
         const savedGistId = localStorage.getItem('admin_gist_id');
         if (savedToken && savedGistId) {
@@ -234,14 +311,34 @@
             document.getElementById('gistId').value = savedGistId;
             unlockAdmin(true);
         }
-    };
+    });
 
-    // 点击左上角小点切换显示输入框
+    // ==========================================
+    // 2. 安全辅助函数
+    // ==========================================
+    function safeParseList(content) {
+        try {
+            const v = JSON.parse(content || '[]');
+            return Array.isArray(v) ? v : [];
+        } catch (e) {
+            console.warn("Gist JSON 解析失败，使用空列表", e);
+            return [];
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.innerText = text;
+        return div.innerHTML;
+    }
+
+    // ==========================================
+    // 3. 管理员操作与 UI 控制
+    // ==========================================
     function toggleAdminAuth() {
         document.getElementById('adminAuthPanel').classList.toggle('hidden');
     }
 
-    // 解锁管理员视图
     async function unlockAdmin(silent = false) {
         const token = document.getElementById('ghToken').value.trim();
         const gistId = document.getElementById('gistId').value.trim();
@@ -258,7 +355,7 @@
 
             const data = await res.json();
             const content = data.files[FILENAME]?.content || '[]';
-            records = JSON.parse(content);
+            records = safeParseList(content);
 
             localStorage.setItem('admin_gh_token', token);
             localStorage.setItem('admin_gist_id', gistId);
@@ -272,7 +369,6 @@
         }
     }
 
-    // 锁定并隐藏管理员视图
     function lockAdmin() {
         isAdminUnlocked = false;
         localStorage.removeItem('admin_gh_token');
@@ -288,53 +384,30 @@
         document.getElementById('btnAlgoS').classList.toggle('active', algo === 'S');
     }
 
-    // 核心分班算法（Z 与 S）
+    // ==========================================
+    // 4. 核心分班算法（已彻底修复蛇形边界 bug）
+    // ==========================================
     function computeClass(rank, algo) {
-        let group, baseVal, quotient, remainder, isEven, targetClass;
-
-        if (rank >= 1 && rank <= 120) {
-            group = '组1';
-            quotient = Math.floor(rank / 3);
-            remainder = rank % 3;
-            isEven = (quotient % 2 === 0);
-
-            if (algo === 'Z') {
-                targetClass = remainder === 1 ? '3R1' : (remainder === 2 ? '3R2' : '3R3');
-            } else {
-                if (isEven) targetClass = remainder === 1 ? '3R1' : (remainder === 2 ? '3R2' : '3R3');
-                else targetClass = remainder === 1 ? '3R3' : (remainder === 2 ? '3R2' : '3R1');
-            }
-        } else if (rank >= 121 && rank <= 280) {
-            group = '组2';
-            baseVal = rank - 120;
-            quotient = Math.floor(baseVal / 4);
-            remainder = baseVal % 4;
-            isEven = (quotient % 2 === 0);
-
-            if (algo === 'Z') {
-                targetClass = remainder === 1 ? '3R4' : (remainder === 2 ? '3R5' : (remainder === 3 ? '3R6' : '3R7'));
-            } else {
-                if (isEven) targetClass = remainder === 1 ? '3R4' : (remainder === 2 ? '3R5' : (remainder === 3 ? '3R6' : '3R7'));
-                else targetClass = remainder === 1 ? '3R7' : (remainder === 2 ? '3R6' : (remainder === 3 ? '3R5' : '3R4'));
-            }
+        let group, cols, baseVal;
+        if (rank <= 120) {
+            group = '组1'; baseVal = rank;          cols = ['3R1', '3R2', '3R3'];
+        } else if (rank <= 280) {
+            group = '组2'; baseVal = rank - 120;    cols = ['3R4', '3R5', '3R6', '3R7'];
         } else {
-            group = '组3';
-            baseVal = rank - 280;
-            quotient = Math.floor(baseVal / 3);
-            remainder = baseVal % 3;
-            isEven = (quotient % 2 === 0);
-
-            if (algo === 'Z') {
-                targetClass = remainder === 1 ? '3R8' : (remainder === 2 ? '3R9' : '3R10');
-            } else {
-                if (isEven) targetClass = remainder === 1 ? '3R8' : (remainder === 2 ? '3R9' : '3R10');
-                else targetClass = remainder === 1 ? '3R10' : (remainder === 2 ? '3R9' : '3R8');
-            }
+            group = '组3'; baseVal = rank - 280;    cols = ['3R8', '3R9', '3R10'];
         }
-        return { targetClass, group };
+        const n = cols.length;
+        const idx = baseVal - 1;                    // 0 基序号
+        const row = Math.floor(idx / n);            // 第几行（0 基）
+        const pos = idx % n;                        // 行内第几个（0 基）
+        const isReverse = (algo === 'S') && (row % 2 === 1);
+        const colIndex = isReverse ? (n - 1 - pos) : pos;
+        return { targetClass: cols[colIndex], group };
     }
 
-    // 生成分组矩阵与从组起点到目标排名的落点动画步骤
+    // ==========================================
+    // 5. 动画渲染与定时器控制
+    // ==========================================
     function buildAnimationPlan(rank, algo) {
         let cols, startRank, offset;
         if (rank <= 120) {
@@ -384,7 +457,6 @@
         }
     }
 
-    // 渲染指定步数的画面状态
     function renderStepAt(index) {
         if (!currentAnimPlan || !lastAnimPayload) return;
         const totalSteps = currentAnimPlan.steps.length;
@@ -395,7 +467,6 @@
         const captionEl = document.getElementById('animCaption');
         const progressEl = document.getElementById('animProgressLabel');
 
-        // 重置所有格子
         currentAnimPlan.cols.forEach((_, idx) => {
             const cell = document.getElementById(`animCell_${idx}`);
             const rankLabel = document.getElementById(`animRank_${idx}`);
@@ -403,7 +474,6 @@
             if (rankLabel) rankLabel.textContent = '-';
         });
 
-        // 标记已走过的格子（取最近一次经过该列的名次）
         for (let i = 0; i <= currentStepIndex; i++) {
             const s = currentAnimPlan.steps[i];
             const cell = document.getElementById(`animCell_${s.colIndex}`);
@@ -455,10 +525,9 @@
         }
     }
 
-    // 放慢后的基础间隔（ms），再按倍速换算
     function getStepIntervalMs() {
         const baseMs = 420;
-        return Math.max(80, Math.round(baseMs / speedMultiplier));
+        return Math.max(60, Math.round(baseMs / speedMultiplier));
     }
 
     function startAutoTimer() {
@@ -515,7 +584,6 @@
         updateControlButtons();
     }
 
-    // 跳转到上一轮（-1）或下一轮（+1）的首步并暂停，方便逐轮查看
     function stepRound(delta) {
         if (!currentAnimPlan) return;
         stopAutoTimer();
@@ -543,7 +611,71 @@
         playAnimation(lastAnimPayload.rank, lastAnimPayload.algo, lastAnimPayload.targetClass);
     }
 
-    // 计算并安全追加保存到云端
+    // ==========================================
+    // 6. 云端同步与提交记录
+    // ==========================================
+    function hideResultAndAnimation() {
+        stopAutoTimer();
+        document.getElementById('resultBox').style.display = 'none';
+    }
+
+    function showSyncError(message) {
+        hideResultAndAnimation(); // 同步失败必须隐藏结果
+        const errBox = document.getElementById('syncErrorBox');
+        document.getElementById('syncErrorDesc').innerText = `${message}。请点击“重试”重新同步云端。`;
+        errBox.style.display = 'block';
+    }
+
+    function hideSyncError() {
+        document.getElementById('syncErrorBox').style.display = 'none';
+    }
+
+    async function syncRecordToCloud(submission) {
+        const activeToken = localStorage.getItem('admin_gh_token') || PUBLIC_TOKEN;
+        const activeGistId = localStorage.getItem('admin_gist_id') || PUBLIC_GIST_ID;
+
+        const getRes = await fetch(`https://api.github.com/gists/${activeGistId}`, {
+            headers: { 'Authorization': `token ${activeToken}` }
+        });
+        if (!getRes.ok) throw new Error('云端连接失败');
+        const gistData = await getRes.json();
+        const latestList = safeParseList(gistData.files[FILENAME]?.content);
+
+        const newRecord = {
+            id: submission.recordId,
+            name: submission.name,
+            oldClass: submission.oldClass,
+            rank: submission.rank,
+            algo: submission.algo,
+            result: submission.targetClass
+        };
+        latestList.unshift(newRecord);
+
+        const patchRes = await fetch(`https://api.github.com/gists/${activeGistId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `token ${activeToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                files: { [FILENAME]: { content: JSON.stringify(latestList, null, 2) } }
+            })
+        });
+        if (!patchRes.ok) throw new Error('云端写入失败');
+
+        records = latestList;
+        if (isAdminUnlocked) renderTable();
+    }
+
+    function displayResultAndAnimation(submission) {
+        hideSyncError();
+        const resultBox = document.getElementById('resultBox');
+        resultBox.style.display = 'block';
+        document.getElementById('resultDetail').innerText = `${submission.name} (${submission.oldClass}) | 排名 ${submission.rank} (${submission.group} · 算法${submission.algo})`;
+        document.getElementById('resultClass').innerText = submission.targetClass;
+        playAnimation(submission.rank, submission.algo, submission.targetClass);
+    }
+
     async function calculateAndSave() {
         const name = document.getElementById('stuName').value.trim();
         const oldClass = document.getElementById('stuClass').value;
@@ -564,59 +696,80 @@
         const rank = rankNum;
         const { targetClass, group } = computeClass(rank, currentAlgo);
 
-        const resultBox = document.getElementById('resultBox');
-        resultBox.style.display = 'block';
-        document.getElementById('resultDetail').innerText = `${name} (${oldClass}) | 排名 ${rank} (${group} · 算法${currentAlgo})`;
-        document.getElementById('resultClass').innerText = targetClass;
-        playAnimation(rank, currentAlgo, targetClass);
+        // 使用更安全的 uuid 避免同一毫秒内发生碰撞
+        const recordId = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+                         ? crypto.randomUUID() 
+                         : Date.now() + Math.floor(Math.random() * 100000);
+
+        const submission = {
+            recordId,
+            name,
+            oldClass,
+            rank,
+            algo: currentAlgo,
+            targetClass,
+            group
+        };
+        pendingSubmission = submission;
+
+        // 核心逻辑：先隐藏旧结果和错误框
+        hideResultAndAnimation();
+        hideSyncError();
 
         const btn = document.getElementById('submitBtn');
         const statusEl = document.getElementById('submitStatus');
         btn.disabled = true;
-        statusEl.innerText = '正在同步记录...';
-
-        const activeToken = localStorage.getItem('admin_gh_token') || PUBLIC_TOKEN;
-        const activeGistId = localStorage.getItem('admin_gist_id') || PUBLIC_GIST_ID;
+        statusEl.innerText = '正在同步云端...';
 
         try {
-            const getRes = await fetch(`https://api.github.com/gists/${activeGistId}`, {
-                headers: { 'Authorization': `token ${activeToken}` }
-            });
-            if (!getRes.ok) throw new Error('云端连接失败');
-            const gistData = await getRes.json();
-            const latestList = JSON.parse(gistData.files[FILENAME]?.content || '[]');
+            // 只有云端同步成功（await 没报错），才会往下走
+            await syncRecordToCloud(submission);
+            statusEl.innerText = '✅ 云端同步成功';
+            
+            // 成功后，才展示结果和动画
+            displayResultAndAnimation(submission);
+            
+            document.getElementById('stuName').value = '';
+            document.getElementById('stuRank').value = '';
+            pendingSubmission = null;
+        } catch (err) {
+            statusEl.innerText = '⚠️ 云端不同步';
+            // 失败则显示重试框，不显示结果
+            showSyncError(err.message || '云端同步异常');
+        } finally {
+            btn.disabled = false;
+        }
+    }
 
-            const newRecord = {
-                id: Date.now() + Math.floor(Math.random() * 1000),
-                name,
-                oldClass,
-                rank,
-                algo: currentAlgo,
-                result: targetClass
-            };
-            latestList.unshift(newRecord);
+    async function retryCloudSync() {
+        if (!pendingSubmission) return;
 
-            const patchRes = await fetch(`https://api.github.com/gists/${activeGistId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `token ${activeToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    files: { [FILENAME]: { content: JSON.stringify(latestList, null, 2) } }
-                })
-            });
-            if (!patchRes.ok) throw new Error('保存失败');
+        const retryBtn = document.getElementById('retrySyncBtn');
+        const statusEl = document.getElementById('submitStatus');
+        const submitBtn = document.getElementById('submitBtn');
 
-            records = latestList;
-            if (isAdminUnlocked) renderTable();
-            statusEl.innerText = '✅ 计算完成';
+        retryBtn.disabled = true;
+        submitBtn.disabled = true;
+        retryBtn.innerText = '正在重试...';
+        statusEl.innerText = '正在重新同步云端...';
+
+        try {
+            await syncRecordToCloud(pendingSubmission);
+            statusEl.innerText = '✅ 云端同步成功';
+            const completed = pendingSubmission;
+            pendingSubmission = null;
+            
+            // 同步成功后才显示
+            displayResultAndAnimation(completed);
             document.getElementById('stuName').value = '';
             document.getElementById('stuRank').value = '';
         } catch (err) {
-            statusEl.innerText = '⚠️ 本地已算出结果，云端同步异常';
+            statusEl.innerText = '⚠️ 云端仍未同步';
+            showSyncError(err.message || '重试失败，请稍后再试');
         } finally {
-            btn.disabled = false;
+            retryBtn.disabled = false;
+            submitBtn.disabled = false;
+            retryBtn.innerText = '重试';
         }
     }
 
@@ -630,7 +783,7 @@
                 headers: { 'Authorization': `token ${token}` }
             });
             const data = await res.json();
-            records = JSON.parse(data.files[FILENAME]?.content || '[]');
+            records = safeParseList(data.files[FILENAME]?.content);
             renderTable();
         } catch (err) {
             alert('刷新失败：' + err.message);
@@ -640,23 +793,34 @@
     function renderTable() {
         const tbody = document.getElementById('recordList');
         document.getElementById('recordCount').innerText = records.length;
+        
         if (records.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#94a3b8;">暂无提交记录</td></tr>';
             return;
         }
+        
         tbody.innerHTML = records.map(r => `
             <tr>
                 <td><strong>${escapeHtml(r.name)}</strong></td>
-                <td>${r.oldClass}</td>
+                <td>${escapeHtml(r.oldClass || '')}</td>
                 <td>${r.rank}</td>
-                <td>${r.algo}</td>
-                <td style="color:var(--primary); font-weight:700;">${r.result}</td>
-                <td><button class="del-btn" onclick="deleteRecord(${r.id}, '${escapeHtml(r.name)}', '${r.result}')">删除</button></td>
+                <td>${escapeHtml(r.algo || '')}</td>
+                <td style="color:var(--primary); font-weight:700;">${escapeHtml(r.result || '')}</td>
+                <td><button class="del-btn delete-action" data-id="${r.id}" data-name="${escapeHtml(r.name)}" data-result="${escapeHtml(r.result)}">删除</button></td>
             </tr>
         `).join('');
     }
 
-    // 删除前二次弹窗确认
+    // 事件委托处理删除
+    document.getElementById('recordList').addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-action')) {
+            const id = e.target.dataset.id;
+            const name = e.target.dataset.name;
+            const result = e.target.dataset.result;
+            deleteRecord(id, name, result);
+        }
+    });
+
     async function deleteRecord(id, name, result) {
         const isConfirmed = confirm(`⚠️ 确定要永久删除【${name}】（分班结果：${result}）的这条记录吗？删除后无法恢复！`);
         if (!isConfirmed) return;
@@ -670,8 +834,8 @@
                 headers: { 'Authorization': `token ${token}` }
             });
             const data = await getRes.json();
-            let latestList = JSON.parse(data.files[FILENAME]?.content || '[]');
-            latestList = latestList.filter(r => r.id !== id);
+            let latestList = safeParseList(data.files[FILENAME]?.content);
+            latestList = latestList.filter(r => String(r.id) !== String(id));
 
             const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
                 method: 'PATCH',
@@ -690,12 +854,6 @@
         } catch (err) {
             alert('删除失败：' + err.message);
         }
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.innerText = text;
-        return div.innerHTML;
     }
 </script>
 </body>
