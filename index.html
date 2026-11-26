@@ -5,22 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>升班分班系统 (Z / S 算法)</title>
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #1e293b;
-            --border: #e2e8f0;
-        }
-        [data-theme="dark"] {
-            --primary: #3b82f6;
-            --primary-hover: #60a5fa;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f8fafc;
-            --border: #334155;
-        }
+        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #e2e8f0; }
+        [data-theme="dark"] { --primary: #3b82f6; --primary-hover: #60a5fa; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; }
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 16px; display: flex; justify-content: center; position: relative; transition: background 0.3s, color 0.3s; }
         .secret-dot { position: fixed; top: 8px; left: 8px; width: 12px; height: 12px; border-radius: 50%; background: #cbd5e1; opacity: 0.45; cursor: pointer; z-index: 999; transition: 0.2s; }
@@ -80,8 +66,6 @@
         [data-theme="dark"] .anim-cell.visited { background: #334155; border-color: #64748b; }
         [data-theme="dark"] .anim-cell.active { background: #1e3a8a; border-color: var(--primary); }
         [data-theme="dark"] .anim-caption { background: #0f172a; border-color: #334155; color: #cbd5e1; }
-        
-        /* 表格样式微调，防止增加列后过于拥挤 */
         table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 10px; }
         th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: #f1f5f9; font-weight: 600; white-space: nowrap; }
@@ -97,45 +81,23 @@
 
 <div class="container">
     <div class="card hidden" id="adminAuthPanel">
-        <h2>
-            <span>🔐 管理员验证</span>
-            <button class="btn-outline" onclick="toggleAdminAuth()">关闭</button>
-        </h2>
+        <h2><span>🔐 管理员验证</span><button class="btn-outline" onclick="toggleAdminAuth()">关闭</button></h2>
         <div class="form-group">
             <label>管理员密码</label>
-            <input type="password" id="adminPass" placeholder="请输入你设置的密码">
+            <input type="password" id="adminPass" placeholder="请输入密码">
         </div>
         <button class="btn-primary" onclick="unlockAdmin()">解锁并查看全部人记录</button>
     </div>
 
     <div class="card">
-        <h2>
-            <span>📊 升班结果计算</span>
-            <button class="btn-outline" id="themeToggle" onclick="toggleDarkMode()" title="切换深色/浅色模式">🌙</button>
-        </h2>
-        <div class="form-group">
-            <label>学生姓名</label>
-            <input type="text" id="stuName" placeholder="请输入名字">
-        </div>
-        <div class="form-group">
-            <label>原班级 (Form 2)</label>
+        <h2><span>📊 升班结果计算</span><button class="btn-outline" id="themeToggle" onclick="toggleDarkMode()">🌙</button></h2>
+        <div class="form-group"><label>学生姓名</label><input type="text" id="stuName" placeholder="请输入名字"></div>
+        <div class="form-group"><label>原班级 (Form 2)</label>
             <select id="stuClass">
-                <option value="2R1">2R1</option>
-                <option value="2R2">2R2</option>
-                <option value="2R3">2R3</option>
-                <option value="2R4">2R4</option>
-                <option value="2R5">2R5</option>
-                <option value="2R6">2R6</option>
-                <option value="2R7">2R7</option>
-                <option value="2R8">2R8</option>
-                <option value="2R9">2R9</option>
-                <option value="2R10">2R10</option>
+                <option value="2R1">2R1</option><option value="2R2">2R2</option><option value="2R3">2R3</option><option value="2R4">2R4</option><option value="2R5">2R5</option><option value="2R6">2R6</option><option value="2R7">2R7</option><option value="2R8">2R8</option><option value="2R9">2R9</option><option value="2R10">2R10</option>
             </select>
         </div>
-        <div class="form-group">
-            <label>年级总排名 (1 - 420 正整数)</label>
-            <input type="number" id="stuRank" min="1" max="420" step="1" placeholder="请输入 1 到 420 之间的整数，例如: 125">
-        </div>
+        <div class="form-group"><label>年级总排名 (1 - 420 正整数)</label><input type="number" id="stuRank" min="1" max="420" step="1" placeholder="请输入 1 到 420 之间的整数"></div>
         <div class="form-group">
             <label>选择分班算法</label>
             <div class="radio-group">
@@ -145,37 +107,24 @@
         </div>
         <button class="btn-primary" id="submitBtn" onclick="calculateAndSave()">计算分班结果</button>
         <div class="status-bar" id="submitStatus"></div>
-
         <div class="sync-error-box" id="syncErrorBox">
             <div class="sync-error-title">⚠️ 云端同步失败，暂不显示分班结果与动画</div>
-            <div class="sync-error-desc" id="syncErrorDesc">网络或云端服务异常，请点击下方按钮重试。</div>
-            <button class="btn-retry" type="button" id="retrySyncBtn" onclick="retryCloudSync()">重试</button>
+            <div class="sync-error-desc" id="syncErrorDesc">网络或云端服务异常，请重试。</div>
+            <button class="btn-retry" type="button" onclick="retryCloudSync()">重试</button>
         </div>
-
         <div class="result-box" id="resultBox">
             <div id="resultDetail"></div>
             <div class="result-class" id="resultClass"></div>
             <div class="anim-panel" id="animPanel">
-                <div class="anim-header">
-                    <span id="animModeLabel">分班路径演示</span>
-                    <span id="animProgressLabel" style="color:var(--primary);"></span>
-                </div>
+                <div class="anim-header"><span id="animModeLabel">分班路径演示</span><span id="animProgressLabel" style="color:var(--primary);"></span></div>
                 <div class="anim-controls">
-                    <button class="btn-outline" type="button" id="btnPrevRound" onclick="stepRound(-1)">上一轮</button>
-                    <button class="btn-outline" type="button" id="btnNextRound" onclick="stepRound(1)">下一轮</button>
-                    <button class="btn-outline" type="button" id="btnPauseToggle" onclick="togglePause()">暂停</button>
+                    <button class="btn-outline" type="button" onclick="stepRound(-1)">上一轮</button>
+                    <button class="btn-outline" type="button" onclick="stepRound(1)">下一轮</button>
+                    <button class="btn-outline" type="button" onclick="togglePause()">暂停</button>
                     <button class="btn-outline" type="button" onclick="replayLastAnimation()">重播</button>
                     <div class="speed-group">
                         <span>速度</span>
-                        <select class="speed-select" id="animSpeedSelect" onchange="changeSpeed()">
-                            <option value="0.2">0.2x</option>
-                            <option value="0.5">0.5x</option>
-                            <option value="1" selected>1x</option>
-                            <option value="1.5">1.5x</option>
-                            <option value="2">2x</option>
-                            <option value="3">3x</option>
-                            <option value="4">4x</option>
-                        </select>
+                        <select class="speed-select" onchange="changeSpeed()"><option value="0.2">0.2x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="1.5">1.5x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option></select>
                     </div>
                 </div>
                 <div class="anim-grid cols-3" id="animGrid"></div>
@@ -185,29 +134,11 @@
     </div>
 
     <div class="card hidden" id="adminRecordsPanel">
-        <h2>
-            <span>📁 全部提交记录 (<span id="recordCount">0</span>)</span>
-            <div>
-                <button class="btn-outline" onclick="loadAllRecords()">刷新</button>
-                <button class="btn-outline" onclick="lockAdmin()" style="color:#ef4444; margin-left:4px;">锁定隐藏</button>
-            </div>
-        </h2>
+        <h2><span>📁 全部提交记录 (<span id="recordCount">0</span>)</span><div><button class="btn-outline" onclick="loadAllRecords()">刷新</button><button class="btn-outline" onclick="lockAdmin()" style="color:#ef4444; margin-left:4px;">锁定隐藏</button></div></h2>
         <div style="overflow-x: auto;">
             <table>
-                <thead>
-                    <tr>
-                        <th>名字</th>
-                        <th>原班</th>
-                        <th>排名</th>
-                        <th>算法</th>
-                        <th>结果</th>
-                        <th>时间/设备</th> <!-- 新增列 -->
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="recordList">
-                    <tr><td colspan="7" style="text-align:center; color:#94a3b8;">加载中...</td></tr>
-                </tbody>
+                <thead><tr><th>名字</th><th>原班</th><th>排名</th><th>算法</th><th>结果</th><th>时间/设备</th><th>操作</th></tr></thead>
+                <tbody id="recordList"><tr><td colspan="7" style="text-align:center; color:#94a3b8;">加载中...</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -221,30 +152,18 @@
     let isAdminUnlocked = false;
     let pendingSubmission = null;
     let adminPassToken = '';
+    let animTimer = null, lastAnimPayload = null, currentAnimPlan = null, currentStepIndex = 0, isPaused = false, speedMultiplier = 1;
 
-    let animTimer = null;
-    let lastAnimPayload = null;
-    let currentAnimPlan = null;
-    let currentStepIndex = 0;
-    let isPaused = false;
-    let speedMultiplier = 1;
-
-    // 深色模式
     function initTheme() {
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeButton(savedTheme);
+        document.getElementById('themeToggle').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
     }
     function toggleDarkMode() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        updateThemeButton(newTheme);
-    }
-    function updateThemeButton(theme) {
-        const btn = document.getElementById('themeToggle');
-        if (btn) btn.innerText = theme === 'dark' ? '☀️' : '🌙';
+        document.getElementById('themeToggle').innerText = newTheme === 'dark' ? '☀️' : '🌙';
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -256,57 +175,22 @@
         }
     });
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.innerText = text;
-        return div.innerHTML;
-    }
-    function toggleAdminAuth() {
-        document.getElementById('adminAuthPanel').classList.toggle('hidden');
-    }
-
-    // ================== 时间与设备抓取 ==================
-    function getCurrentTimeString() {
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        const seconds = String(d.getSeconds()).padStart(2, '0');
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    }
-
-    function getDeviceString() {
-        const ua = navigator.userAgent;
-        if (/MicroMessenger/i.test(ua)) return '微信内打开';
-        if (/iPhone|iPad|iPod/i.test(ua)) return '苹果设备';
-        if (/Android/i.test(ua)) return '安卓设备';
-        if (/Windows/i.test(ua)) return 'Windows电脑';
-        if (/Macintosh|Mac OS X/i.test(ua)) return 'Mac电脑';
-        return '其他设备';
-    }
+    function escapeHtml(text) { const div = document.createElement('div'); div.innerText = text; return div.innerHTML; }
+    function toggleAdminAuth() { document.getElementById('adminAuthPanel').classList.toggle('hidden'); }
 
     // ================== 管理员 ==================
     async function unlockAdmin(silent = false) {
         const pass = document.getElementById('adminPass').value.trim();
-        if (!pass) {
-            if (!silent) alert('请输入管理员密码！');
-            return;
-        }
+        if (!pass) { if (!silent) alert('请输入管理员密码！'); return; }
         
         try {
-            const res = await fetch(`${WORKER_URL}/api/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: pass })
-            });
-            if (!res.ok) throw new Error('密码错误');
+            const res = await fetch(`${WORKER_URL}/api/test?password=${encodeURIComponent(pass)}`);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || '密码错误');
 
             adminPassToken = pass;
             localStorage.setItem('admin_pass', pass);
             isAdminUnlocked = true;
-
             document.getElementById('adminAuthPanel').classList.add('hidden');
             document.getElementById('adminRecordsPanel').classList.remove('hidden');
             await loadAllRecords();
@@ -317,8 +201,7 @@
     }
 
     function lockAdmin() {
-        isAdminUnlocked = false;
-        adminPassToken = '';
+        isAdminUnlocked = false; adminPassToken = '';
         localStorage.removeItem('admin_pass');
         document.getElementById('adminPass').value = '';
         document.getElementById('adminRecordsPanel').classList.add('hidden');
@@ -327,24 +210,18 @@
     async function loadAllRecords() {
         if (!isAdminUnlocked) return;
         try {
-            const res = await fetch(`${WORKER_URL}/api/records`, {
-                headers: { 'X-Admin-Pass': adminPassToken }
-            });
-            if (!res.ok) throw new Error('获取失败');
-            records = await res.json();
+            const res = await fetch(`${WORKER_URL}/api/records?pass=${encodeURIComponent(adminPassToken)}`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || '获取失败');
+            records = Array.isArray(data) ? data : [];
             renderTable();
-        } catch (err) {
-            alert('刷新失败：' + err.message);
-        }
+        } catch (err) { alert('刷新失败：' + err.message); }
     }
 
     function renderTable() {
         const tbody = document.getElementById('recordList');
         document.getElementById('recordCount').innerText = records.length;
-        if (records.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8;">暂无提交记录</td></tr>';
-            return;
-        }
+        if (records.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8;">暂无提交记录</td></tr>'; return; }
         tbody.innerHTML = records.map(r => `
             <tr>
                 <td><strong>${escapeHtml(r.name)}</strong></td>
@@ -352,10 +229,7 @@
                 <td>${r.rank}</td>
                 <td>${escapeHtml(r.algo || '')}</td>
                 <td style="color:var(--primary); font-weight:700;">${escapeHtml(r.targetClass || r.result || '')}</td>
-                <td style="font-size:0.75rem; color:#64748b;">
-                    ${r.time ? escapeHtml(r.time) : '<span style="color:#94a3b8;">旧数据</span>'}<br>
-                    <span style="color:var(--primary);">${r.device ? escapeHtml(r.device) : ''}</span>
-                </td>
+                <td style="font-size:0.75rem; color:#64748b;">${r.time ? escapeHtml(r.time) : '<span style="color:#94a3b8;">旧数据</span>'}<br><span style="color:var(--primary);">${r.device ? escapeHtml(r.device) : ''}</span></td>
                 <td><button class="del-btn delete-action" data-id="${r.id}" data-name="${escapeHtml(r.name)}" data-result="${escapeHtml(r.targetClass || r.result || '')}">删除</button></td>
             </tr>
         `).join('');
@@ -368,23 +242,16 @@
     });
 
     async function deleteRecord(id, name, result) {
-        const isConfirmed = confirm(`⚠️ 确定要永久删除【${name}】（分班结果：${result}）的这条记录吗？删除后无法恢复！`);
-        if (!isConfirmed) return;
+        if (!confirm(`⚠️ 确定要永久删除【${name}】（分班结果：${result}）的这条记录吗？`)) return;
         try {
-            const res = await fetch(`${WORKER_URL}/api/delete`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-Admin-Pass': adminPassToken
-                },
+            const res = await fetch(`${WORKER_URL}/api/delete?pass=${encodeURIComponent(adminPassToken)}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id })
             });
             if (!res.ok) throw new Error('删除失败');
             records = records.filter(r => String(r.id) !== String(id));
             renderTable();
-        } catch (err) {
-            alert('删除失败：' + err.message);
-        }
+        } catch (err) { alert('删除失败：' + err.message); }
     }
 
     // ================== 算法与动画 ==================
@@ -396,20 +263,12 @@
 
     function computeClass(rank, algo) {
         let group, cols, baseVal;
-        if (rank <= 120) {
-            group = '组1'; baseVal = rank;          cols = ['3R1', '3R2', '3R3'];
-        } else if (rank <= 280) {
-            group = '组2'; baseVal = rank - 120;    cols = ['3R4', '3R5', '3R6', '3R7'];
-        } else {
-            group = '组3'; baseVal = rank - 280;    cols = ['3R8', '3R9', '3R10'];
-        }
-        const n = cols.length;
-        const idx = baseVal - 1;
-        const row = Math.floor(idx / n);
-        const pos = idx % n;
+        if (rank <= 120) { group = '组1'; baseVal = rank; cols = ['3R1', '3R2', '3R3']; }
+        else if (rank <= 280) { group = '组2'; baseVal = rank - 120; cols = ['3R4', '3R5', '3R6', '3R7']; }
+        else { group = '组3'; baseVal = rank - 280; cols = ['3R8', '3R9', '3R10']; }
+        const n = cols.length, idx = baseVal - 1, row = Math.floor(idx / n), pos = idx % n;
         const isReverse = (algo === 'S') && (row % 2 === 1);
-        const colIndex = isReverse ? (n - 1 - pos) : pos;
-        return { targetClass: cols[colIndex], group };
+        return { targetClass: cols[isReverse ? (n - 1 - pos) : pos], group };
     }
 
     function buildAnimationPlan(rank, algo) {
@@ -417,62 +276,35 @@
         if (rank <= 120) { cols = ['3R1', '3R2', '3R3']; startRank = 1; offset = rank; }
         else if (rank <= 280) { cols = ['3R4', '3R5', '3R6', '3R7']; startRank = 121; offset = rank - 120; }
         else { cols = ['3R8', '3R9', '3R10']; startRank = 281; offset = rank - 280; }
-
-        const n = cols.length;
-        const steps = [];
+        const n = cols.length, steps = [];
         for (let stepIdx = 0; stepIdx < offset; stepIdx++) {
-            const currentVal = startRank + stepIdx;
-            const k = stepIdx + 1;
-            const row = Math.floor((k - 1) / n);
-            const posInRow = (k - 1) % n;
+            const currentVal = startRank + stepIdx, k = stepIdx + 1;
+            const row = Math.floor((k - 1) / n), posInRow = (k - 1) % n;
             const isReverseRow = (algo === 'S') && (row % 2 === 1);
-            const colIndex = isReverseRow ? (n - 1 - posInRow) : posInRow;
-            steps.push({ stepIdx, currentVal, colIndex, className: cols[colIndex], row, dirArrow: algo === 'Z' ? '→' : (isReverseRow ? '←' : '→') });
+            steps.push({ stepIdx, currentVal, colIndex: isReverseRow ? (n - 1 - posInRow) : posInRow, className: cols[isReverseRow ? (n - 1 - posInRow) : posInRow], row, dirArrow: algo === 'Z' ? '→' : (isReverseRow ? '←' : '→') });
         }
         return { cols, steps, targetRank: rank, totalRounds: Math.ceil(offset / n) };
     }
 
     function stopAutoTimer() { if (animTimer) { clearInterval(animTimer); animTimer = null; } }
-
+    
     function renderStepAt(index) {
         if (!currentAnimPlan || !lastAnimPayload) return;
         const totalSteps = currentAnimPlan.steps.length;
         currentStepIndex = Math.max(0, Math.min(index, totalSteps - 1));
         const step = currentAnimPlan.steps[currentStepIndex];
-        const isLast = (currentStepIndex === totalSteps - 1);
-        
         currentAnimPlan.cols.forEach((_, idx) => {
-            const cell = document.getElementById(`animCell_${idx}`);
-            const rankLabel = document.getElementById(`animRank_${idx}`);
-            if (cell) cell.className = 'anim-cell';
-            if (rankLabel) rankLabel.textContent = '-';
+            const cell = document.getElementById(`animCell_${idx}`), label = document.getElementById(`animRank_${idx}`);
+            if (cell) cell.className = 'anim-cell'; if (label) label.textContent = '-';
         });
-
         for (let i = 0; i <= currentStepIndex; i++) {
-            const s = currentAnimPlan.steps[i];
-            const cell = document.getElementById(`animCell_${s.colIndex}`);
-            const rankLabel = document.getElementById(`animRank_${s.colIndex}`);
-            if (cell) cell.classList.add('visited');
-            if (rankLabel) rankLabel.textContent = `#${s.currentVal}`;
+            const s = currentAnimPlan.steps[i], cell = document.getElementById(`animCell_${s.colIndex}`), label = document.getElementById(`animRank_${s.colIndex}`);
+            if (cell) cell.classList.add('visited'); if (label) label.textContent = `#${s.currentVal}`;
         }
-
-        const activeCell = document.getElementById(`animCell_${step.colIndex}`);
-        if (activeCell) { activeCell.classList.remove('visited'); activeCell.classList.add(isLast ? 'final' : 'active'); }
-
+        const active = document.getElementById(`animCell_${step.colIndex}`);
+        if (active) { active.classList.remove('visited'); active.classList.add((currentStepIndex === totalSteps - 1) ? 'final' : 'active'); }
         document.getElementById('animProgressLabel').textContent = `第 ${step.row + 1}/${currentAnimPlan.totalRounds} 轮 · 第 ${currentStepIndex + 1}/${totalSteps} 步`;
-        document.getElementById('animCaption').innerHTML = isLast ? `排名 <strong>${lastAnimPayload.rank}</strong> 按 <strong>算法 ${lastAnimPayload.algo}</strong> 落在 <strong>${lastAnimPayload.targetClass}</strong>` : `第 ${step.currentVal} 名 ${step.dirArrow} ${step.className}（第 ${step.row + 1} 轮）`;
-        
-        updateControlButtons();
-    }
-
-    function updateControlButtons() {
-        const pauseBtn = document.getElementById('btnPauseToggle');
-        if (!currentAnimPlan) return;
-        const isFinished = currentStepIndex >= currentAnimPlan.steps.length - 1;
-        if (isFinished) { pauseBtn.textContent = '已完成'; pauseBtn.disabled = true; } 
-        else { pauseBtn.disabled = false; pauseBtn.textContent = isPaused ? '继续' : '暂停'; }
-        document.getElementById('btnPrevRound').disabled = currentAnimPlan.steps[currentStepIndex].row <= 0;
-        document.getElementById('btnNextRound').disabled = currentAnimPlan.steps[currentStepIndex].row >= currentAnimPlan.totalRounds - 1;
+        document.getElementById('animCaption').innerHTML = (currentStepIndex === totalSteps - 1) ? `排名 <strong>${lastAnimPayload.rank}</strong> 按 <strong>算法 ${lastAnimPayload.algo}</strong> 落在 <strong>${lastAnimPayload.targetClass}</strong>` : `第 ${step.currentVal} 名 ${step.dirArrow} ${step.className}（第 ${step.row + 1} 轮）`;
     }
 
     function startAutoTimer() {
@@ -483,18 +315,16 @@
 
     function playAnimation(rank, algo, targetClass) {
         stopAutoTimer(); isPaused = false; currentStepIndex = 0;
-        const plan = buildAnimationPlan(rank, algo);
-        currentAnimPlan = plan; lastAnimPayload = { rank, algo, targetClass };
-        
-        document.getElementById('animGrid').className = `anim-grid cols-${plan.cols.length}`;
-        document.getElementById('animModeLabel').textContent = algo === 'Z' ? `算法 Z（每行 ${plan.cols.length} 班，→ 顺序）` : `算法 S（每行 ${plan.cols.length} 班，→ / ← 蛇形）`;
-        document.getElementById('animGrid').innerHTML = plan.cols.map((cls, idx) => `<div class="anim-cell" id="animCell_${idx}"><div class="cls-name">${cls}</div><div class="rank-num" id="animRank_${idx}">-</div></div>`).join('');
+        currentAnimPlan = buildAnimationPlan(rank, algo); lastAnimPayload = { rank, algo, targetClass };
+        document.getElementById('animGrid').className = `anim-grid cols-${currentAnimPlan.cols.length}`;
+        document.getElementById('animModeLabel').textContent = algo === 'Z' ? `算法 Z（每行 ${currentAnimPlan.cols.length} 班，→ 顺序）` : `算法 S（每行 ${currentAnimPlan.cols.length} 班，→ / ← 蛇形）`;
+        document.getElementById('animGrid').innerHTML = currentAnimPlan.cols.map((cls, idx) => `<div class="anim-cell" id="animCell_${idx}"><div class="cls-name">${cls}</div><div class="rank-num" id="animRank_${idx}">-</div></div>`).join('');
         renderStepAt(0); startAutoTimer();
     }
 
-    function togglePause() { if (!currentAnimPlan) return; isPaused = !isPaused; if (isPaused) stopAutoTimer(); else startAutoTimer(); updateControlButtons(); }
-    function stepRound(delta) { if (!currentAnimPlan) return; stopAutoTimer(); isPaused = true; const target = Math.max(0, Math.min(currentAnimPlan.steps[currentStepIndex].row + delta, currentAnimPlan.totalRounds - 1)); const first = currentAnimPlan.steps.findIndex(s => s.row === target); if (first !== -1) renderStepAt(first); }
-    function changeSpeed() { speedMultiplier = parseFloat(document.getElementById('animSpeedSelect').value) || 1; if (!isPaused && animTimer) startAutoTimer(); }
+    function togglePause() { if (!currentAnimPlan) return; isPaused = !isPaused; if (isPaused) stopAutoTimer(); else startAutoTimer(); }
+    function stepRound(d) { if (!currentAnimPlan) return; stopAutoTimer(); isPaused = true; const t = Math.max(0, Math.min(currentAnimPlan.steps[currentStepIndex].row + d, currentAnimPlan.totalRounds - 1)); const f = currentAnimPlan.steps.findIndex(s => s.row === t); if (f !== -1) renderStepAt(f); }
+    function changeSpeed() { speedMultiplier = parseFloat(document.querySelector('.speed-select').value) || 1; if (!isPaused && animTimer) startAutoTimer(); }
     function replayLastAnimation() { if (lastAnimPayload) playAnimation(lastAnimPayload.rank, lastAnimPayload.algo, lastAnimPayload.targetClass); }
 
     // ================== 提交与云端 ==================
@@ -504,88 +334,58 @@
 
     async function syncRecord(sub) {
         const res = await fetch(`${WORKER_URL}/api/submit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(sub)
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sub)
         });
-        if (!res.ok) throw new Error('云端写入失败');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '云端写入失败');
     }
 
-    function displayResult(sub) {
-        hideError();
-        document.getElementById('resultBox').style.display = 'block';
-        document.getElementById('resultDetail').innerText = `${sub.name} (${sub.oldClass}) | 排名 ${sub.rank} (${sub.group} · 算法${sub.algo})`;
-        document.getElementById('resultClass').innerText = sub.targetClass;
-        playAnimation(sub.rank, sub.algo, sub.targetClass);
-    }
+    function getCurrentTimeString() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`; }
+    function getDeviceString() { const ua = navigator.userAgent; if (/MicroMessenger/i.test(ua)) return '微信内打开'; if (/iPhone|iPad|iPod/i.test(ua)) return '苹果设备'; if (/Android/i.test(ua)) return '安卓设备'; if (/Windows/i.test(ua)) return 'Windows电脑'; if (/Macintosh|Mac OS X/i.test(ua)) return 'Mac电脑'; return '其他设备'; }
 
     async function calculateAndSave() {
         const name = document.getElementById('stuName').value.trim();
         const oldClass = document.getElementById('stuClass').value;
-        const rawRankText = document.getElementById('stuRank').value.trim();
-        const rankNum = Number(rawRankText);
+        const rawRank = document.getElementById('stuRank').value.trim();
+        const rankNum = Number(rawRank);
 
         if (!name) return alert('请输入学生姓名！');
-        if (rawRankText === '' || !Number.isFinite(rankNum) || !Number.isInteger(rankNum) || rankNum <= 0 || rankNum >= 421) {
-            return alert('排名必须满足 0 < 排名 < 421 且为整数！');
-        }
+        if (rawRank === '' || !Number.isFinite(rankNum) || !Number.isInteger(rankNum) || rankNum <= 0 || rankNum >= 421) return alert('排名必须是 1-420 的整数！');
 
         const { targetClass, group } = computeClass(rankNum, currentAlgo);
-        const recordId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Date.now() + Math.floor(Math.random() * 100000);
+        const submission = { id: (crypto.randomUUID ? crypto.randomUUID() : Date.now()), name, oldClass, rank: rankNum, algo: currentAlgo, targetClass, group, time: getCurrentTimeString(), device: getDeviceString() };
         
-        // 组装提交数据，加入时间和设备
-        const submission = { 
-            id: recordId, 
-            name, 
-            oldClass, 
-            rank: rankNum, 
-            algo: currentAlgo, 
-            targetClass, 
-            group,
-            time: getCurrentTimeString(),
-            device: getDeviceString()
-        };
-        
-        pendingSubmission = submission;
-        hideResult(); hideError();
-
-        const btn = document.getElementById('submitBtn');
-        const status = document.getElementById('submitStatus');
+        pendingSubmission = submission; hideResult(); hideError();
+        const btn = document.getElementById('submitBtn'), status = document.getElementById('submitStatus');
         btn.disabled = true; status.innerText = '正在同步云端...';
 
         try {
             await syncRecord(submission);
             status.innerText = '✅ 云端同步成功';
-            displayResult(submission);
-            document.getElementById('stuName').value = '';
-            document.getElementById('stuRank').value = '';
-            pendingSubmission = null;
+            hideError(); document.getElementById('resultBox').style.display = 'block';
+            document.getElementById('resultDetail').innerText = `${submission.name} (${submission.oldClass}) | 排名 ${submission.rank} (${submission.group} · 算法${submission.algo})`;
+            document.getElementById('resultClass').innerText = submission.targetClass;
+            playAnimation(submission.rank, submission.algo, submission.targetClass);
+            document.getElementById('stuName').value = ''; document.getElementById('stuRank').value = ''; pendingSubmission = null;
         } catch (err) {
-            status.innerText = '⚠️ 云端同步失败';
-            showError(err.message);
-        } finally {
-            btn.disabled = false;
-        }
+            status.innerText = '⚠️ 云端同步失败'; showError(err.message);
+        } finally { btn.disabled = false; }
     }
 
     async function retryCloudSync() {
         if (!pendingSubmission) return;
-        const retryBtn = document.getElementById('retrySyncBtn');
-        const btn = document.getElementById('submitBtn');
+        const btn = document.getElementById('submitBtn'), retryBtn = document.querySelector('.btn-retry');
         retryBtn.disabled = true; btn.disabled = true; retryBtn.innerText = '重试中...';
-        
         try {
             await syncRecord(pendingSubmission);
             const done = pendingSubmission; pendingSubmission = null;
-            document.getElementById('submitStatus').innerText = '✅ 云端同步成功';
-            displayResult(done);
-            document.getElementById('stuName').value = '';
-            document.getElementById('stuRank').value = '';
-        } catch (err) {
-            showError(err.message);
-        } finally {
-            retryBtn.disabled = false; btn.disabled = false; retryBtn.innerText = '重试';
-        }
+            document.getElementById('submitStatus').innerText = '✅ 云端同步成功'; hideError();
+            document.getElementById('resultBox').style.display = 'block';
+            document.getElementById('resultDetail').innerText = `${done.name} (${done.oldClass}) | 排名 ${done.rank} (${done.group} · 算法${done.algo})`;
+            document.getElementById('resultClass').innerText = done.targetClass;
+            playAnimation(done.rank, done.algo, done.targetClass);
+            document.getElementById('stuName').value = ''; document.getElementById('stuRank').value = '';
+        } catch (err) { showError(err.message); } finally { retryBtn.disabled = false; btn.disabled = false; retryBtn.innerText = '重试'; }
     }
 </script>
 </body>
