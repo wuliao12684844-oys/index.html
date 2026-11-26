@@ -135,7 +135,7 @@
 
         table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 10px; }
         th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: #f1f5f9; font-weight: 600; }
+        th { background: #f1f5f9; font-weight: 600; white-space: nowrap; }
         [data-theme="dark"] th { background: #334155; }
         .del-btn { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
         .status-bar { font-size: 0.8rem; color: #64748b; margin-top: 8px; text-align: right; }
@@ -192,7 +192,7 @@
             </select>
         </div>
         <div class="form-group">
-            <label>rbt班总排名 (1 - 420 正整数)</label>
+            <label>年级总排名 (1 - 420 正整数)</label>
             <input type="number" id="stuRank" min="1" max="420" step="1" placeholder="请输入 1 到 420 之间的整数，例如: 125">
         </div>
         <div class="form-group">
@@ -264,11 +264,12 @@
                         <th>排名</th>
                         <th>算法</th>
                         <th>结果</th>
+                        <th>时间/设备</th> <!-- 新增列 -->
                         <th>操作</th>
                     </tr>
                 </thead>
                 <tbody id="recordList">
-                    <tr><td colspan="6" style="text-align:center; color:#94a3b8;">加载中...</td></tr>
+                    <tr><td colspan="7" style="text-align:center; color:#94a3b8;">加载中...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -649,6 +650,29 @@
         document.getElementById('syncErrorBox').style.display = 'none';
     }
 
+    // 获取当前时间字符串
+    function getCurrentTimeString() {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        const seconds = String(d.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // 获取简易设备信息
+    function getDeviceString() {
+        const ua = navigator.userAgent;
+        if (/MicroMessenger/i.test(ua)) return '微信内打开';
+        if (/iPhone|iPad|iPod/i.test(ua)) return '苹果设备';
+        if (/Android/i.test(ua)) return '安卓设备';
+        if (/Windows/i.test(ua)) return 'Windows 电脑';
+        if (/Macintosh|Mac OS X/i.test(ua)) return 'Mac 电脑';
+        return '未知设备';
+    }
+
     async function syncRecordToCloud(submission) {
         const activeToken = localStorage.getItem('admin_gh_token') || PUBLIC_TOKEN;
         const activeGistId = localStorage.getItem('admin_gist_id') || PUBLIC_GIST_ID;
@@ -666,7 +690,9 @@
             oldClass: submission.oldClass,
             rank: submission.rank,
             algo: submission.algo,
-            result: submission.targetClass
+            result: submission.targetClass,
+            time: submission.time,      // 记录时间
+            device: submission.device   // 记录设备
         };
         latestList.unshift(newRecord);
 
@@ -727,7 +753,9 @@
             rank,
             algo: currentAlgo,
             targetClass,
-            group
+            group,
+            time: getCurrentTimeString(),  // 获取当前时间
+            device: getDeviceString()      // 获取设备信息
         };
         pendingSubmission = submission;
 
@@ -814,7 +842,7 @@
         document.getElementById('recordCount').innerText = records.length;
         
         if (records.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#94a3b8;">暂无提交记录</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8;">暂无提交记录</td></tr>';
             return;
         }
         
@@ -825,6 +853,10 @@
                 <td>${r.rank}</td>
                 <td>${escapeHtml(r.algo || '')}</td>
                 <td style="color:var(--primary); font-weight:700;">${escapeHtml(r.result || '')}</td>
+                <td style="font-size:0.75rem; color:#64748b;">
+                    ${r.time ? escapeHtml(r.time) : '旧数据无时间'}<br>
+                    <span style="color:var(--primary);">${r.device ? escapeHtml(r.device) : ''}</span>
+                </td>
                 <td><button class="del-btn delete-action" data-id="${r.id}" data-name="${escapeHtml(r.name)}" data-result="${escapeHtml(r.result)}">删除</button></td>
             </tr>
         `).join('');
