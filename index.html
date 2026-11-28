@@ -9,6 +9,32 @@
         [data-theme="dark"] { --primary: #3b82f6; --primary-hover: #60a5fa; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; }
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 16px; display: flex; justify-content: center; position: relative; transition: background 0.3s, color 0.3s; }
+        
+        /* ===== 新增：免责声明弹窗样式 ===== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.3s ease;
+        }
+        .modal-box {
+            background: var(--card); padding: 24px; border-radius: 12px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid var(--border);
+            transform: translateY(0); transition: transform 0.3s ease;
+        }
+        .modal-title { font-size: 1.2rem; font-weight: 700; color: #dc2626; margin-bottom: 12px; }
+        .modal-text { font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 20px; text-align: left; }
+        .modal-checkbox {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            cursor: pointer; font-weight: 600; font-size: 0.95rem; color: var(--primary);
+            padding: 10px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);
+            transition: 0.2s;
+        }
+        .modal-checkbox:hover { border-color: var(--primary); }
+        .modal-checkbox input { width: 18px; height: 18px; cursor: pointer; }
+        .modal-timer { margin-top: 12px; font-size: 0.8rem; color: #64748b; }
+
         .secret-dot { position: fixed; top: 8px; left: 8px; width: 12px; height: 12px; border-radius: 50%; background: #cbd5e1; opacity: 0.45; cursor: pointer; z-index: 999; transition: 0.2s; }
         .secret-dot:hover { opacity: 1; background: var(--primary); }
         .container { width: 100%; max-width: 600px; margin-top: 8px; }
@@ -76,6 +102,22 @@
     </style>
 </head>
 <body>
+
+<!-- ===== 新增：免责声明弹窗 ===== -->
+<div class="modal-overlay" id="disclaimerModal">
+    <div class="modal-box">
+        <div class="modal-title">⚠️ 免责声明</div>
+        <div class="modal-text">
+            这是一个模拟学校分班的网站，不一定准确，仅供参考。<br><br>
+            <strong>最终解释权归校方所有。</strong>
+        </div>
+        <label class="modal-checkbox">
+            <input type="checkbox" id="agreeCheckbox"> 我已知晓
+        </label>
+        <div class="modal-timer" id="modalTimer">5 秒后自动进入...</div>
+    </div>
+</div>
+<!-- ============================== -->
 
 <div class="secret-dot" title="管理入口" onclick="toggleAdminAuth()"></div>
 
@@ -154,6 +196,39 @@
     let adminPassToken = '';
     let animTimer = null, lastAnimPayload = null, currentAnimPlan = null, currentStepIndex = 0, isPaused = false, speedMultiplier = 1;
 
+    // ===== 新增：弹窗逻辑 =====
+    let countdownTimer = null;
+    function initModal() {
+        const modal = document.getElementById('disclaimerModal');
+        const checkbox = document.getElementById('agreeCheckbox');
+        const timerText = document.getElementById('modalTimer');
+        let timeLeft = 5;
+
+        // 勾选后直接关闭
+        checkbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                closeModal();
+            }
+        });
+
+        // 倒计时自动关闭
+        countdownTimer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                timerText.innerText = `${timeLeft} 秒后自动进入...`;
+            } else {
+                closeModal();
+            }
+        }, 1000);
+
+        function closeModal() {
+            clearInterval(countdownTimer);
+            modal.style.opacity = '0';
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+    }
+    // =========================
+
     function initTheme() {
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -167,6 +242,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+        initModal(); // 启动弹窗
         initTheme();
         const savedPass = localStorage.getItem('admin_pass');
         if (savedPass) {
