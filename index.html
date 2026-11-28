@@ -10,30 +10,23 @@
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 16px; display: flex; justify-content: center; position: relative; transition: background 0.3s, color 0.3s; }
         
-        /* ===== 新增：免责声明弹窗样式 ===== */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999; transition: opacity 0.3s ease;
-        }
-        .modal-box {
-            background: var(--card); padding: 24px; border-radius: 12px;
-            width: 90%; max-width: 400px; text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid var(--border);
-            transform: translateY(0); transition: transform 0.3s ease;
-        }
+        /* 弹窗通用样式 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.3s ease; }
+        .modal-box { background: var(--card); padding: 24px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid var(--border); transform: translateY(0); transition: transform 0.3s ease; position: relative; }
         .modal-title { font-size: 1.2rem; font-weight: 700; color: #dc2626; margin-bottom: 12px; }
         .modal-text { font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 20px; text-align: left; }
-        .modal-checkbox {
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            cursor: pointer; font-weight: 600; font-size: 0.95rem; color: var(--primary);
-            padding: 10px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);
-            transition: 0.2s;
-        }
+        
+        /* 免责声明专用 */
+        .modal-checkbox { display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem; color: var(--primary); padding: 10px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); transition: 0.2s; }
         .modal-checkbox:hover { border-color: var(--primary); }
         .modal-checkbox input { width: 18px; height: 18px; cursor: pointer; }
         .modal-timer { margin-top: 12px; font-size: 0.8rem; color: #64748b; }
+
+        /* 算法说明弹窗专用 */
+        .close-x { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 1.2rem; color: #64748b; cursor: pointer; transition: 0.2s; padding: 0; }
+        .close-x:hover { color: #dc2626; transform: scale(1.1); }
+        .algo-title { font-size: 1.15rem; color: var(--primary); font-weight: 700; margin-bottom: 15px; }
+        .algo-content { font-size: 0.95rem; line-height: 1.6; color: var(--text); text-align: left; margin-bottom: 20px; background: var(--bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); }
 
         .secret-dot { position: fixed; top: 8px; left: 8px; width: 12px; height: 12px; border-radius: 50%; background: #cbd5e1; opacity: 0.45; cursor: pointer; z-index: 999; transition: 0.2s; }
         .secret-dot:hover { opacity: 1; background: var(--primary); }
@@ -44,9 +37,17 @@
         label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; }
         input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; background: var(--card); color: var(--text); transition: background 0.3s, border-color 0.3s; }
         input:focus, select:focus { border-color: var(--primary); }
+        select:invalid { color: #94a3b8; }
+        option { color: var(--text); }
+
         .radio-group { display: flex; gap: 12px; }
-        .radio-btn { flex: 1; text-align: center; padding: 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .radio-btn { flex: 1; text-align: center; padding: 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 6px; }
         .radio-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        /* 信息图标 */
+        .info-icon { cursor: pointer; opacity: 0.7; transition: 0.2s; font-size: 1.1rem; }
+        .info-icon:hover { opacity: 1; transform: scale(1.2); }
+
         button.btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 6px; }
         button.btn-primary:hover { background: var(--primary-hover); }
         button.btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
@@ -103,7 +104,7 @@
 </head>
 <body>
 
-<!-- ===== 新增：免责声明弹窗 ===== -->
+<!-- 免责声明弹窗 -->
 <div class="modal-overlay" id="disclaimerModal">
     <div class="modal-box">
         <div class="modal-title">⚠️ 免责声明</div>
@@ -117,7 +118,16 @@
         <div class="modal-timer" id="modalTimer">5 秒后自动进入...</div>
     </div>
 </div>
-<!-- ============================== -->
+
+<!-- 算法说明弹窗（新增带 X） -->
+<div class="modal-overlay hidden" id="algoModal">
+    <div class="modal-box">
+        <button class="close-x" onclick="closeAlgoModal()">✕</button>
+        <div class="algo-title" id="algoTitle">算法说明</div>
+        <div class="algo-content" id="algoText"></div>
+        <button class="btn-primary" onclick="playDemo()">看动画演示</button>
+    </div>
+</div>
 
 <div class="secret-dot" title="管理入口" onclick="toggleAdminAuth()"></div>
 
@@ -134,26 +144,45 @@
     <div class="card">
         <h2><span>📊 升班结果计算</span><button class="btn-outline" id="themeToggle" onclick="toggleDarkMode()">🌙</button></h2>
         <div class="form-group"><label>学生姓名</label><input type="text" id="stuName" placeholder="请输入名字"></div>
-        <div class="form-group"><label>原班级 (Form 2)</label>
-            <select id="stuClass">
-                <option value="2R1">2R1</option><option value="2R2">2R2</option><option value="2R3">2R3</option><option value="2R4">2R4</option><option value="2R5">2R5</option><option value="2R6">2R6</option><option value="2R7">2R7</option><option value="2R8">2R8</option><option value="2R9">2R9</option><option value="2R10">2R10</option>
+        <div class="form-group">
+            <label>原班级 (Form 2)</label>
+            <select id="stuClass" required>
+                <option value="" disabled selected hidden>请选择原班级</option>
+                <option value="2R1">2R1</option>
+                <option value="2R2">2R2</option>
+                <option value="2R3">2R3</option>
+                <option value="2R4">2R4</option>
+                <option value="2R5">2R5</option>
+                <option value="2R6">2R6</option>
+                <option value="2R7">2R7</option>
+                <option value="2R8">2R8</option>
+                <option value="2R9">2R9</option>
+                <option value="2R10">2R10</option>
             </select>
         </div>
         <div class="form-group"><label>年级总排名 (1 - 420 正整数)</label><input type="number" id="stuRank" min="1" max="420" step="1" placeholder="请输入 1 到 420 之间的整数"></div>
+        
         <div class="form-group">
             <label>选择分班算法</label>
             <div class="radio-group">
-                <div class="radio-btn active" id="btnAlgoZ" onclick="selectAlgo('Z')">算法 Z (顺序)</div>
-                <div class="radio-btn" id="btnAlgoS" onclick="selectAlgo('S')">算法 S (蛇形)</div>
+                <!-- 增加了 info-icon 和阻止冒泡 -->
+                <div class="radio-btn active" id="btnAlgoZ" onclick="selectAlgo('Z')">
+                    算法 Z (顺序) <span class="info-icon" onclick="openAlgoModal('Z', event)">ℹ️</span>
+                </div>
+                <div class="radio-btn" id="btnAlgoS" onclick="selectAlgo('S')">
+                    算法 S (蛇形) <span class="info-icon" onclick="openAlgoModal('S', event)">ℹ️</span>
+                </div>
             </div>
         </div>
         <button class="btn-primary" id="submitBtn" onclick="calculateAndSave()">计算分班结果</button>
         <div class="status-bar" id="submitStatus"></div>
+        
         <div class="sync-error-box" id="syncErrorBox">
             <div class="sync-error-title">⚠️ 云端同步失败，暂不显示分班结果与动画</div>
             <div class="sync-error-desc" id="syncErrorDesc">网络或云端服务异常，请重试。</div>
             <button class="btn-retry" type="button" onclick="retryCloudSync()">重试</button>
         </div>
+        
         <div class="result-box" id="resultBox">
             <div id="resultDetail"></div>
             <div class="result-class" id="resultClass"></div>
@@ -196,7 +225,7 @@
     let adminPassToken = '';
     let animTimer = null, lastAnimPayload = null, currentAnimPlan = null, currentStepIndex = 0, isPaused = false, speedMultiplier = 1;
 
-    // ===== 新增：弹窗逻辑 =====
+    // 弹窗逻辑
     let countdownTimer = null;
     function initModal() {
         const modal = document.getElementById('disclaimerModal');
@@ -204,14 +233,10 @@
         const timerText = document.getElementById('modalTimer');
         let timeLeft = 5;
 
-        // 勾选后直接关闭
         checkbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                closeModal();
-            }
+            if (e.target.checked) closeModal();
         });
 
-        // 倒计时自动关闭
         countdownTimer = setInterval(() => {
             timeLeft--;
             if (timeLeft > 0) {
@@ -227,7 +252,6 @@
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
     }
-    // =========================
 
     function initTheme() {
         const savedTheme = localStorage.getItem('theme') || 'light';
@@ -242,7 +266,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        initModal(); // 启动弹窗
+        initModal();
         initTheme();
         const savedPass = localStorage.getItem('admin_pass');
         if (savedPass) {
@@ -253,6 +277,54 @@
 
     function escapeHtml(text) { const div = document.createElement('div'); div.innerText = text; return div.innerHTML; }
     function toggleAdminAuth() { document.getElementById('adminAuthPanel').classList.toggle('hidden'); }
+
+    // ================== 算法说明弹窗逻辑 ==================
+    let currentDemoAlgo = 'Z';
+
+    function openAlgoModal(algo, event) {
+        event.stopPropagation(); // 阻止事件冒泡，防止触发外层按钮的选中事件
+        currentDemoAlgo = algo;
+        
+        const title = document.getElementById('algoTitle');
+        const text = document.getElementById('algoText');
+        const modal = document.getElementById('algoModal');
+
+        if (algo === 'Z') {
+            title.innerText = '📖 算法 Z (直线顺序法)';
+            text.innerHTML = `按照名次依次分入各班级。第一轮从 R1 排到最后一个班，第二轮再从 R1 重新开始，永远从左向右（→）顺序分配。<br><br><strong>举个例子：</strong><br>1进R1，2进R2，3进R3，4进R1，5进R2，6进R3...`;
+        } else {
+            title.innerText = '📖 算法 S (蛇形折返法)';
+            text.innerHTML = `按照名次依次分入各班级，但像“蛇”一样来回折返。第一轮从左向右（→），走到底后，第二轮从右向左（←）倒着走，第三轮再从左向右（→）。<br><br><strong>举个例子：</strong><br>1进R1，2进R2，3进R3，4进R3，5进R2，6进R1...`;
+        }
+
+        modal.classList.remove('hidden');
+        modal.style.opacity = '1';
+    }
+
+    function closeAlgoModal() {
+        const modal = document.getElementById('algoModal');
+        modal.style.opacity = '0';
+        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    }
+
+    // 触发动画演示
+    function playDemo() {
+        closeAlgoModal();
+        
+        // 隐藏其他无关提示
+        hideError();
+        document.getElementById('resultBox').style.display = 'block';
+        
+        // 填入演示数据并播放
+        document.getElementById('resultDetail').innerText = `【系统演示】 | 排名 12 (${currentDemoAlgo === 'Z' ? '组1' : '组1'} · 算法${currentDemoAlgo})`;
+        document.getElementById('resultClass').innerText = computeClass(12, currentDemoAlgo).targetClass;
+        
+        // 播放 1-12 名的动画
+        playAnimation(12, currentDemoAlgo, computeClass(12, currentDemoAlgo).targetClass);
+        
+        // 滚动到结果区域
+        document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 
     // ================== 管理员 ==================
     async function unlockAdmin(silent = false) {
@@ -426,6 +498,7 @@
         const rankNum = Number(rawRank);
 
         if (!name) return alert('请输入学生姓名！');
+        if (!oldClass) return alert('请选择你的原班级！');
         if (rawRank === '' || !Number.isFinite(rankNum) || !Number.isInteger(rankNum) || rankNum <= 0 || rankNum >= 421) return alert('排名必须是 1-420 的整数！');
 
         const { targetClass, group } = computeClass(rankNum, currentAlgo);
@@ -442,7 +515,10 @@
             document.getElementById('resultDetail').innerText = `${submission.name} (${submission.oldClass}) | 排名 ${submission.rank} (${submission.group} · 算法${submission.algo})`;
             document.getElementById('resultClass').innerText = submission.targetClass;
             playAnimation(submission.rank, submission.algo, submission.targetClass);
-            document.getElementById('stuName').value = ''; document.getElementById('stuRank').value = ''; pendingSubmission = null;
+            document.getElementById('stuName').value = ''; 
+            document.getElementById('stuRank').value = ''; 
+            document.getElementById('stuClass').value = ''; 
+            pendingSubmission = null;
         } catch (err) {
             status.innerText = '⚠️ 云端同步失败'; showError(err.message);
         } finally { btn.disabled = false; }
@@ -460,7 +536,9 @@
             document.getElementById('resultDetail').innerText = `${done.name} (${done.oldClass}) | 排名 ${done.rank} (${done.group} · 算法${done.algo})`;
             document.getElementById('resultClass').innerText = done.targetClass;
             playAnimation(done.rank, done.algo, done.targetClass);
-            document.getElementById('stuName').value = ''; document.getElementById('stuRank').value = '';
+            document.getElementById('stuName').value = ''; 
+            document.getElementById('stuRank').value = '';
+            document.getElementById('stuClass').value = ''; 
         } catch (err) { showError(err.message); } finally { retryBtn.disabled = false; btn.disabled = false; retryBtn.innerText = '重试'; }
     }
 </script>
